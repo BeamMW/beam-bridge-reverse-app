@@ -151,13 +151,13 @@ const MainPage: React.FC = () => {
             pallete="purple"
             disabled={isDisabled()}
             onClick={handleSendClick}>
-              beam to ethereum
+              BEAM ={'>'} WBEAM (Ethereum)
             </Button>
             <Button icon={IconReceive}
             className={receiveButtonClass}
             pallete="blue"
             onClick={handleReceiveClick}>
-              ethereum to beam
+              WBEAM (Ethereum) ={'>'} BEAM
             </Button>
           </StyledControls>
           <StyledTable>

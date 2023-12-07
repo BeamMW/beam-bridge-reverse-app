@@ -152,7 +152,7 @@ const Selector: React.FC<SelectorProps> = ({onCurrChange, onPkChanged, className
   return (<StyledDropdown className={className}>
     <DropdownElem onClick={toggleDropdown}>
       {ICONS[selectedCurrency.name]()}
-      <span className={CurrencyClass}>{selectedCurrency.name}</span>
+      <span className={CurrencyClass}>{selectedCurrency.name == "BEAM" ? "WBEAM" : selectedCurrency.name}</span>
       <Triangle></Triangle>
     </DropdownElem>
     {
@@ -162,7 +162,7 @@ const Selector: React.FC<SelectorProps> = ({onCurrChange, onPkChanged, className
           {items.map(item => (
             <DropdownElemOption key={item.id} onClick={e => handleItemClick(item)}>
               {ICONS[item.name]()}
-              <span className={CurrencyClass}>{item.name}</span>
+              <span className={CurrencyClass}>{item.name == "BEAM" ? "WBEAM" : item.name}</span>
             </DropdownElemOption>
           ))}
         </DropdownBody>
@@ -422,7 +422,7 @@ const Receive = () => {
     <Window>
       <ReceiveStyled>
         <Title>
-          ETHEREUM TO BEAM
+          WBEAM (Ethereum) ={'>'} BEAM
         </Title>
         <Container>
           <Subtitle>Choose currency</Subtitle>
