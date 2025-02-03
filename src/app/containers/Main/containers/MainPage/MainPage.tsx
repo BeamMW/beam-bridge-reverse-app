@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Window, Button, Table, Rate } from '@app/shared/components';
 import { selectAppParams, selectBridgeTransactions, selectRate } from '../../store/selectors';
 import { IconSend, IconReceive } from '@app/shared/icons';
-import { CURRENCIES, ROUTES } from '@app/shared/constants';
+import { BEAM, ROUTES } from '@app/shared/constants';
 import { BridgeTransaction } from '@core/types';
 import { Transaction } from '@app/core/types';
 import { IconConfirm } from '@app/shared/icons';
@@ -91,16 +91,17 @@ const MainPage: React.FC = () => {
       name: 'amount',
       title: 'Amount',
       fn: (value: string, tr: BridgeTransaction) => {
-        const curr = CURRENCIES.find((item) => item.cid === tr.cid);
-        const val = parseInt(value) / Math.pow(10, curr.decimals);
-        const stringVal = val.toFixed(curr.validator_dec).replace(/\.?0+$/,"") + ' ' + curr.name;
+        // const curr = CURRENCIES.find((item) => item.cid === tr.cid);
+        // const val = parseInt(value) / Math.pow(10, curr.decimals);
+        // const stringVal = val.toFixed(curr.validator_dec).replace(/\.?0+$/,"") + ' ' + curr.name;
 
-        return (<>
-          <span>{stringVal}</span>
-          <Rate value={val}
-                  selectedCurrencyId={curr.rate_id}
-                  className={RateStyleClass} />
-        </>);
+        // return (<>
+        //   <span>{stringVal}</span>
+        //   <Rate value={val}
+        //           selectedCurrencyId={curr.rate_id}
+        //           className={RateStyleClass} />
+        // </>);
+        return <></>
       }
     },
     {

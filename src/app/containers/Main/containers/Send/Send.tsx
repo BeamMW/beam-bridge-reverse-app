@@ -5,8 +5,8 @@ import { css } from '@linaria/core';
 
 import { IconCancel, IconSend } from '@app/shared/icons';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@app/shared/constants';
-import { SendTo } from '@core/api';
+import { BEAM, NETWORKS_BY_INDICATOR, ROUTES } from '@app/shared/constants';
+import { sendTo } from '@core/api';
 import { useFormik } from 'formik';
 import ethereum_address from 'ethereum-address';
 import { useSelector } from 'react-redux';
@@ -163,7 +163,8 @@ const FeeSubtitleClass = css`
 const Send = () => {
   const navigate = useNavigate();
   const relayerFees = useSelector(selectFees());
-  const [address, setAddress] = useState(null);
+  const [address, setAddress] = useState<string>(null);
+  const [networkId, setNetworkId] = useState<number>(null);
   const [selectedCurrency, setCurrency] = useState(null);
 
   const validate = async (formValues: SendFormData) => {
@@ -180,8 +181,11 @@ const Send = () => {
       errorsValidation.send_amount = `Insufficient amount`;
     }
 
+    const separatedAddress = address.slice(0, 42);
+    const networkIndicator = address.substring(42);
+
     const regex = new RegExp('^[A-Za-z0-9]+$');
-    if (!regex.test(address) || !ethereum_address.isAddress(address)) {
+    if (!regex.test(separatedAddress) || !ethereum_address.isAddress(separatedAddress) || !NETWORKS_BY_INDICATOR[networkIndicator]) {
       errorsValidation.address = `Unrecognized address`;
     }
 
@@ -232,7 +236,7 @@ const Send = () => {
       selectedCurrency
     };
     
-    SendTo(sendData, selectedCurrency.cid);
+    sendTo(sendData, BEAM.cid_by_network[networkId]);
     navigate(ROUTES.MAIN.MAIN_PAGE);
   }
 
@@ -242,8 +246,12 @@ const Send = () => {
   }
 
   const handleAddressChange = (address: string) => {
+    const separatedAddress = address.slice(0, 42);
+    const networkIndicator = address.substring(42);
+    
     setFieldValue('address', address, true);
-    setAddress(address);
+    setAddress(separatedAddress);
+    setNetworkId(NETWORKS_BY_INDICATOR[networkIndicator] ? NETWORKS_BY_INDICATOR[networkIndicator] : null)
   }
 
   const handleAmountChange = (amount: string) => {
@@ -265,10 +273,10 @@ const Send = () => {
           label={errors.address}
           variant="common"
           name="address"/>
-        <EnsureField>Ensure the address matches the Ethereum network to avoid losses</EnsureField>
+        {/* <EnsureField>Ensure the address matches the Ethereum network to avoid losses</EnsureField> */}
       </Container>
 
-      { address ? 
+      { address && !errors.address ? 
         (<AmountContainer>
           <Subtitle>AMOUNT</Subtitle>
           <CurrInput 
@@ -333,14 +341,16 @@ const Send = () => {
         pallete="purple" 
         className={CancelButtonClass}
         icon={IconCancel}> close</Button>
-        { address ? 
-          (<Button type="submit" 
-            disabled={isFormDisabled()} 
-            icon={IconSend}
-            className={TransferButtonClass}
-            pallete="purple" 
-            variant="regular">transfer</Button>) : 
-          (<></>) 
+        { address && (
+            <Button type="submit" 
+              disabled={isFormDisabled()} 
+              icon={IconSend}
+              className={TransferButtonClass}
+              pallete="purple" 
+              variant="regular">
+                transfer
+            </Button>
+          ) 
         }
       </ControlsStyled>
     </SendStyled>

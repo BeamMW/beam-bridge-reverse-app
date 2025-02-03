@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { styled } from '@linaria/react';
 import { Button, Window } from '@app/shared/components';
 import { css } from '@linaria/core';
-import { CURRENCIES, ROUTES } from '@app/shared/constants';
+import { BEAM, ROUTES } from '@app/shared/constants';
 import { IconCancel, 
   IconCopyWhite,
   IconDai,
@@ -67,24 +67,24 @@ const BackDrop: React.FC<BackDropProps> = ({
 const Selector: React.FC<SelectorProps> = ({onCurrChange, onPkChanged, className}) => {
   const dispatch = useDispatch();
   const [isOpen, setOpen] = useState(false);
-  const [items, setItem] = useState(CURRENCIES);
+  // const [items, setItem] = useState(CURRENCIES);
   const toggleDropdown = () => setOpen(!isOpen);
-  const [selectedCurrency, setCurr] = useState(items[0]);
+  // const [selectedCurrency, setCurr] = useState(items[0]);
   
-  useEffect(()=>{
-    setCurr(items[0])
-    onCurrChange(items[0]);
-    LoadPublicKey(null, items[0].cid).then((pk) => {
-      onPkChanged(pk);
-    });
-  }, [])
+  // useEffect(()=>{
+  //   setCurr(items[0])
+  //   onCurrChange(items[0]);
+  //   LoadPublicKey(null, items[0].cid).then((pk) => {
+  //     onPkChanged(pk);
+  //   });
+  // }, [])
   
   const handleItemClick = async (item) => {
-    setCurr(item);
-    onCurrChange(item);
-    const pk = await LoadPublicKey(null, item.cid);
-    onPkChanged(pk);
-    setOpen(false);
+    // setCurr(item);
+    // onCurrChange(item);
+    // const pk = await LoadPublicKey(null, item.cid);
+    // onPkChanged(pk);
+    // setOpen(false);
   }
 
   const StyledDropdown = styled.div`
@@ -151,20 +151,20 @@ const Selector: React.FC<SelectorProps> = ({onCurrChange, onPkChanged, className
 
   return (<StyledDropdown className={className}>
     <DropdownElem onClick={toggleDropdown}>
-      {ICONS[selectedCurrency.name]()}
-      <span className={CurrencyClass}>{selectedCurrency.name == "BEAM" ? "WBEAM" : selectedCurrency.name}</span>
+      {/* {ICONS[selectedCurrency.name]()}
+      <span className={CurrencyClass}>{selectedCurrency.name == "BEAM" ? "WBEAM" : selectedCurrency.name}</span> */}
       <Triangle></Triangle>
     </DropdownElem>
     {
       isOpen ? 
       <>
         <DropdownBody isVisible={isOpen} className={`dropdown-body ${isOpen && 'open'}`}>
-          {items.map(item => (
+          {/* {items.map(item => (
             <DropdownElemOption key={item.id} onClick={e => handleItemClick(item)}>
               {ICONS[item.name]()}
               <span className={CurrencyClass}>{item.name == "BEAM" ? "WBEAM" : item.name}</span>
             </DropdownElemOption>
-          ))}
+          ))} */}
         </DropdownBody>
         <BackDrop onCancel={()=>setOpen(false)}/>
       </> : null

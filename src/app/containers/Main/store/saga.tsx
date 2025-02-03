@@ -1,6 +1,6 @@
 import { call, put, takeLatest, select } from 'redux-saga/effects';
 import { navigate } from '@app/shared/store/actions';
-import { ROUTES, CURRENCIES } from '@app/shared/constants';
+import { ROUTES, BEAM } from '@app/shared/constants';
 import { LoadPublicKey, LoadIncoming } from '@core/api';
 import { calcRelayerFee } from '@core/appUtils';
 
@@ -19,24 +19,24 @@ export function* loadParamsSaga(
     action: ReturnType<typeof actions.loadAppParams.request>,
   ): Generator {
     try {
-      const pkey = yield call(LoadPublicKey, action.payload ? action.payload : null, CURRENCIES[0].cid);
+      // const pkey = yield call(LoadPublicKey, action.payload ? action.payload : null, CURRENCIES[0].cid);
 
-      let bridgeTransactions: BridgeTransaction[] = [];
-      for (let curr of CURRENCIES) {
-        const trs = (yield call(LoadIncoming, curr.cid)) as IncomingTransaction[];
+      // let bridgeTransactions: BridgeTransaction[] = [];
+      // for (let curr of CURRENCIES) {
+      //   const trs = (yield call(LoadIncoming, curr.cid)) as IncomingTransaction[];
        
-        trs.forEach((item, i) => {
-          bridgeTransactions.push({
-            amount: item.amount,
-            cid: curr.cid,
-            pid: i,
-            id: item.MsgId,
-            status: ''
-          })
-        });
-      }
+      //   trs.forEach((item, i) => {
+      //     bridgeTransactions.push({
+      //       amount: item.amount,
+      //       cid: curr.cid,
+      //       pid: i,
+      //       id: item.MsgId,
+      //       status: ''
+      //     })
+      //   });
+      // }
 
-      yield put(actions.setBridgeTransactions(bridgeTransactions));
+      // yield put(actions.setBridgeTransactions(bridgeTransactions));
     
       const isLoaded = yield select(selectIsLoaded());
       if (!isLoaded) {
@@ -98,16 +98,11 @@ async function loadRelayerFee(ethRate: number, currFee: number, gasPrice: GasPri
 
 export function* loadRate() {
   try {
-    let rate_ids = [];
-    CURRENCIES.forEach((curr) => {
-      rate_ids.push(curr.rate_id);
-    });
+    const rate_ids = [BEAM.rate_id];
     rate_ids.push('ethereum');
     const result = yield call(loadRatesApiCall, rate_ids);
     let feeVals = {};
     const gasPrice = yield call(loadGasPrice);
-
-    console.log(result)
 
     for (let item in result) {
       const feeVal = yield call(loadRelayerFee, result['ethereum'].usd, result[item].usd, gasPrice);

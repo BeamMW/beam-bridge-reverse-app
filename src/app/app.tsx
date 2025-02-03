@@ -32,27 +32,6 @@ const routes = [
   }
 ];
 
-async function estimateGas() {
-  // Set up the EtherscanProvider
-  const provider = new ethers.providers.EtherscanProvider("homestead", "XKWU88XG5Z8ESF5KNKJNDH4VFZUWFUJD5N");
-
-  // Define the transaction
-  const tx = {
-    to: "0x959257a565d5Fb44724Bc322e83CAF8c8AaB3E8b", // Replace with the recipient's address
-    value: ethers.utils.parseEther("0.1"), // Replace with the amount of ETH to send
-    data: "0x", // Optional data payload
-  };
-
-  try {
-    // Estimate gas
-    const gasEstimate = await provider.estimateGas(tx);
-    alert(`Estimated Gas: ${gasEstimate.toString()}`);
-  } catch (error) {
-    console.error("Error estimating gas:", error);
-  }
-}
-
-
 const App = () => {
   const dispatch = useDispatch();
   const content = useRoutes(routes);
@@ -66,10 +45,6 @@ const App = () => {
     }
   }, [navigateURL, dispatch, navigate]);
 
-  useEffect(() => {
-    estimateGas();
-  })
-  
   return (
     <Scrollbars
         renderThumbVertical={(props) => <div {...props} className={trackStyle} />}

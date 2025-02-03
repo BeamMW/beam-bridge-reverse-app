@@ -23,7 +23,7 @@ export function LoadIncoming<T = any>(cid): Promise<T> {
     });
 }
 
-export function SendTo<T = any>(sendData, cid: string): Promise<T> {
+export function sendTo<T = any>(sendData, cid: string): Promise<T> {
     const { amount, address, fee, decimals, selectedCurrency } = sendData;
     const expBy = (new BigNumber(10).exponentiatedBy(decimals));
     const finalAmount = (new BigNumber(amount)).times(expBy).toNumber();

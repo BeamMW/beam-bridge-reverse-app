@@ -1,6 +1,6 @@
 import React, { useState, useRef, HTMLAttributes } from 'react';
 import { styled } from '@linaria/react';
-import { CURRENCIES } from '@app/shared/constants';
+// import { CURRENCIES } from '@app/shared/constants';
 import { css } from '@linaria/core';
 import { IconDai, IconEth, IconUsdt, IconWbtc, IconBeam } from '@app/shared/icons';
 import { useEffect } from 'react';
@@ -94,20 +94,20 @@ const rateStyle = css`
 
 const Selector = (data: {type: string, onCurrChange: (next)=>void}) => {
   const [isOpen, setOpen] = useState(false);
-  const [items, setItem] = useState(CURRENCIES);
-  const [selectedItem, setSelectedItem] = useState(items[0]);
+  // const [items, setItem] = useState(CURRENCIES);
+  // const [selectedItem, setSelectedItem] = useState(items[0]);
 
-  useEffect(()=>{
-    data.onCurrChange(items[0]);
-  }, [])
+  // useEffect(()=>{
+  //   data.onCurrChange(items[0]);
+  // }, [])
   
-  const toggleDropdown = () => setOpen(!isOpen);
+  // const toggleDropdown = () => setOpen(!isOpen);
 
-  const handleItemClick = (item) => {
-    setSelectedItem(item);
-    data.onCurrChange(item);
-    setOpen(false);
-  }
+  // const handleItemClick = (item) => {
+  //   setSelectedItem(item);
+  //   data.onCurrChange(item);
+  //   setOpen(false);
+  // }
 
   const StyledDropdown = styled.div`
     margin-left: auto;
@@ -166,7 +166,7 @@ const Selector = (data: {type: string, onCurrChange: (next)=>void}) => {
 
   return data.type === 'amount' ? (
     <StyledDropdown>
-      <DropdownElem onClick={toggleDropdown}>
+      {/* <DropdownElem onClick={toggleDropdown}>
         {ICONS[selectedItem.name]()}
         <span className={CurrencyClass}>{selectedItem.name}</span>
         <Triangle></Triangle>
@@ -178,12 +178,12 @@ const Selector = (data: {type: string, onCurrChange: (next)=>void}) => {
             <span className={CurrencyClass}>{item.name}</span>
           </DropdownElemOption>
         ))}
-      </DropdownBody>
+      </DropdownBody> */}
     </StyledDropdown>
   ) : (data.type === 'fee' ? (<StyledDropdown>
-    <DropdownElem>
+    {/* <DropdownElem>
       {selectedItem.name}
-    </DropdownElem>
+    </DropdownElem> */}
   </StyledDropdown>) : <></>);
 }
 
