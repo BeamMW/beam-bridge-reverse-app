@@ -1,42 +1,38 @@
 import { call, put, takeLatest, select } from 'redux-saga/effects';
 import { navigate } from '@app/shared/store/actions';
-import { ROUTES, BEAM } from '@app/shared/constants';
-import { LoadPublicKey, LoadIncoming } from '@core/api';
-import { calcRelayerFee } from '@core/appUtils';
-
-import { actions } from '.';
-import store from '../../../../index';
+import { ROUTES, BEAM, ETH_ID, DEFAULT_NETWORK_ID } from '@app/shared/constants';
+import { loadPublicKey, loadIncoming } from '@core/beamAPI';
+import { calcRelayFee, getGasPrice } from '@core/appUtils';
 import { BridgeTransaction, IncomingTransaction } from '@app/core/types';
 import { setIsLoaded } from '@app/shared/store/actions';
 import { selectIsLoaded } from '@app/shared/store/selectors';
 
+import { actions } from '.';
+import store from '../../../../index';
+import { GasPriceItem, GasPriceResponse, RatesApiResponse } from '../interfaces';
+
 const FETCH_INTERVAL = 5000;
-const API_URL = 'https://api.coingecko.com/api/v3/simple/price';
-const RESERVE_API_URL = 'https://explorer-api.beam.mw/bridges/rates';
-const GAS_API_URL = 'https://explorer-api.beam.mw/bridges/gasprice';
+const API_URL = 'https://explorer-api.beam.mw/bridges';
 
 export function* loadParamsSaga(
     action: ReturnType<typeof actions.loadAppParams.request>,
   ): Generator {
     try {
-      // const pkey = yield call(LoadPublicKey, action.payload ? action.payload : null, CURRENCIES[0].cid);
+      yield call(loadPublicKey, action.payload ? action.payload : null, BEAM.cid_by_network[DEFAULT_NETWORK_ID]);
 
-      // let bridgeTransactions: BridgeTransaction[] = [];
-      // for (let curr of CURRENCIES) {
-      //   const trs = (yield call(LoadIncoming, curr.cid)) as IncomingTransaction[];
-       
-      //   trs.forEach((item, i) => {
-      //     bridgeTransactions.push({
-      //       amount: item.amount,
-      //       cid: curr.cid,
-      //       pid: i,
-      //       id: item.MsgId,
-      //       status: ''
-      //     })
-      //   });
-      // }
+      let bridgeTransactions: BridgeTransaction[] = [];
+      const trs = (yield call(loadIncoming, BEAM.cid_by_network[DEFAULT_NETWORK_ID])) as IncomingTransaction[];
+      trs.forEach((item, i) => {
+        bridgeTransactions.push({
+          amount: item.amount,
+          cid: BEAM.cid_by_network[DEFAULT_NETWORK_ID],
+          pid: i,
+          id: item.MsgId,
+          status: ''
+        })
+      });
 
-      // yield put(actions.setBridgeTransactions(bridgeTransactions));
+      yield put(actions.setBridgeTransactions(bridgeTransactions));
     
       const isLoaded = yield select(selectIsLoaded());
       if (!isLoaded) {
@@ -48,77 +44,65 @@ export function* loadParamsSaga(
     }
 }
 
-async function loadRatesCached() {
+async function loadRatesCached(): Promise<RatesApiResponse> {
   try {
-    const response = await fetch(RESERVE_API_URL);
+    const response = await fetch(`${API_URL}/rates`);
     if (response.status === 200) {
       const promise = await response.json();
       return promise;
     }
 
     return null;
-  } catch (e) {
-    return null;
-  }
-}
-
-async function loadRatesApiCall(rate_ids) {
-  try {
-    const response = await fetch(`${API_URL}?ids=${rate_ids.join(',')}&vs_currencies=usd`);
-    if (response.status === 200) {
-      const promise = await response.json();
-      return promise;
-    } else {
-      return await loadRatesCached();
-    }
   } catch (error) {
-    return await loadRatesCached();
+    console.log(error)
   }
 }
 
-interface GasPrice {
-  FastGasPrice: string,
-  LastBlock: string,
-  ProposeGasPrice: string,
-  SafeGasPrice: string,
-  gasUsedRatio: string,
-  suggestBaseFee: string
-}
-
-async function loadGasPrice() {
-  const response = await fetch(GAS_API_URL);
-  const gasPrice = await response.json();
-  return gasPrice;
-}
-
-async function loadRelayerFee(ethRate: number, currFee: number, gasPrice: GasPrice) {
-  const res = await calcRelayerFee(ethRate, currFee, gasPrice);
-  return res;
-}
-
-export function* loadRate() {
+async function loadGasPricesApiCall(): Promise<GasPriceResponse> {
   try {
-    const rate_ids = [BEAM.rate_id];
-    rate_ids.push('ethereum');
-    const result = yield call(loadRatesApiCall, rate_ids);
-    let feeVals = {};
-    const gasPrice = yield call(loadGasPrice);
+    const response = await fetch(`${API_URL}/gasprices`);
+    return await response.json();
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-    for (let item in result) {
-      const feeVal = yield call(loadRelayerFee, result['ethereum'].usd, result[item].usd, gasPrice);
-      feeVals[item] = feeVal.toFixed(8);
-    }
-    yield put(actions.setFeeValues(feeVals));
-    yield put(actions.loadRate.success(result));
+export function* loadRatesSaga() {
+  try {
+    const ratesApiResponse = yield call(loadRatesCached);
+    yield put(actions.loadRate.success(ratesApiResponse));
     setTimeout(() => store.dispatch(actions.loadRate.request()), FETCH_INTERVAL);
   } catch (e) {
     yield put(actions.loadRate.failure(e));
   }
 }
 
+export function* loadRelayerFeesSaga(action: ReturnType<typeof actions.loadRelayerFees.request>): Generator {
+  try {
+    const gasPricesResponse = (yield call(loadGasPricesApiCall)) as GasPriceItem;
+    const fees = Object.entries(gasPricesResponse).map(([network, gasPriceValue]) => {
+      const gasPrice = getGasPrice(gasPriceValue);
+
+      const relayFee = calcRelayFee({
+        gasPrice,
+        currencyPriceInUSD: action.payload.rates[action.payload.currency.rate_id].usd,
+        baseCurrencyPriceInUSD: action.payload.rates[ETH_ID].usd,
+        currencyDecimals: action.payload.currency.decimals,
+      });
+
+      return [network, relayFee];
+    });
+    const relayerFees = Object.fromEntries(fees);
+    yield put(actions.loadRelayerFees.success(relayerFees));
+  } catch (e) {
+    yield put(actions.loadRelayerFees.failure(e));
+  }
+}
+
 function* mainSaga() {
     yield takeLatest(actions.loadAppParams.request, loadParamsSaga);
-    yield takeLatest(actions.loadRate.request, loadRate);
+    yield takeLatest(actions.loadRate.request, loadRatesSaga);
+    yield takeLatest(actions.loadRelayerFees.request, loadRelayerFeesSaga);
 }
 
 export default mainSaga;

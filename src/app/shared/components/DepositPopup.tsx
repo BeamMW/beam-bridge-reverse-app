@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectErrorMessage, selectSystemState } from '@app/shared/store/selectors';
 import { useFormik } from 'formik';
 import { toGroths } from '@core/appUtils';
-import { UserDeposit } from '@core/api';
+import { UserDeposit } from '@core/beamAPI';
 import { css } from '@linaria/core';
 import { selectAppParams } from '@app/containers/Main/store/selectors';
 

@@ -16,19 +16,6 @@ export interface IncomingTransaction {
 }
 
 
-
-
-
-
-
-
-
-
-export interface CurrentEpoch {
-    iEpoch: number;
-    proposals: number;
-}
-
 export interface NextEpoch {
     proposals: number;
 }
@@ -46,89 +33,23 @@ export interface InitialProposal {
     data?: any;
 }
 
-export interface ProposalStats {
-    result: {
-      total: number;
-      stake_active: number;
-      variants: number[];
-    }
-}
-
-export interface ProposalData {
-    title: string;
-    description: string;
-    quorum?: Quorum;
-    forum_link: string;
-    ref_link?: string;
-    timestamp?: number;
-}
-
-export interface ProcessedProposal extends InitialProposal{
-    stats: ProposalStats;
-    data: ProposalData;
-    voted?: number;
-    prevVoted?: {value: number, stake: number};
-    epoch?: number;
-}
-
-export interface ProposalState {
-    items: ProcessedProposal[];
-    is_active: boolean;
-}
-
-export interface FaucetAppParams {
+export interface BridgeAppParams {
   backlogPeriod: number;
   enabled: number;
   isAdmin: number;
   withdrawLimit: number;
 }
 
-export interface FaucetFund {
-  Aid: number;
-  Amount: number;
-}
-
-export interface UserViewParams {
-    current_votes?: number[];
-    voteCounter: number;
-    stake_active: number;
-    stake_passive: number;
-}
-
-export interface TotalViewParams {
-  stake_active: number;
-  stake_passive: number;
-}
-
-export interface Moderator {
-    height: number;
-    pk: string;
-}
-
 export interface SystemState {
-    current_height: number
-    current_state_hash: string
-    current_state_timestamp: number
-    is_in_sync: boolean
-    prev_state_hash: string;
-    tip_height: number;
-    tip_prev_state_hash: string;
-    tip_state_hash: string;
-    tip_state_timestamp: number;
-}
-
-interface ContractVersion {
-  Height: number,
-  version: number,
-}
-interface ManagerViewContract {
-    cid: string,
-    Height: number,
-    version_history: ContractVersion[]
-}
-
-export interface ManagerViewData {
-    contracts: ManagerViewContract[]
+  current_height: number
+  current_state_hash: string
+  current_state_timestamp: number
+  is_in_sync: boolean
+  prev_state_hash: string;
+  tip_height: number;
+  tip_prev_state_hash: string;
+  tip_state_hash: string;
+  tip_state_timestamp: number;
 }
 
 export enum TxStatusString {
@@ -166,65 +87,59 @@ export enum TxStatusString {
     RECEIVED_PUBLIC_OFFLINE = 'received public offline',
   }
   
-  export enum TxStatus {
-    PENDING,
-    IN_PROGRESS,
-    CANCELED,
-    COMPLETED,
-    FAILED,
-    REGISTERING,
-  }
-  
-  export enum TxType {
-    SIMPLE = 0,
-    ASSET_ISSUE = 2,
-    ASSET_CONSUME = 3,
-    ASSET_INFO = 6,
-    PUSH_TX = 7,
-    CONTRACT = 12,
-  }
-  
-  export interface Amount {
-    amount: number;
-    asset_id: number;
-  }
-  export interface Contract {
-    amounts?: Amount[];
-    contract_id: string;
-  }
-  
-  export interface Transaction {
-    asset_id: number;
-    comment: string;
-    confirmations: number;
-    create_time: number;
-    fee: number;
-    fee_only: boolean;
-    height: number;
-    income: boolean;
-    kernel: string;
-    receiver: string;
-    sender: string;
-    status: TxStatus;
-    status_string: TxStatusString;
-    txId: string;
-    tx_type: TxType;
-    tx_type_string: string;
-    value: number;
-    invoke_data: Contract[];
-    appname: string;
-  }
-  export interface WalletChangeEvent {
-    change: number;
-    change_str: string;
-  }
-  
-  export interface TxsEvent extends WalletChangeEvent {
-    txs: Transaction[];
-  }
+export enum TxStatus {
+  PENDING,
+  IN_PROGRESS,
+  CANCELED,
+  COMPLETED,
+  FAILED,
+  REGISTERING,
+}
 
-  export interface PrevEpochVote {
-    id1: number;
-    stake: number;
-    votes: number[];
-  }
+export enum TxType {
+  SIMPLE = 0,
+  ASSET_ISSUE = 2,
+  ASSET_CONSUME = 3,
+  ASSET_INFO = 6,
+  PUSH_TX = 7,
+  CONTRACT = 12,
+}
+
+export interface Amount {
+  amount: number;
+  asset_id: number;
+}
+export interface Contract {
+  amounts?: Amount[];
+  contract_id: string;
+}
+
+export interface Transaction {
+  asset_id: number;
+  comment: string;
+  confirmations: number;
+  create_time: number;
+  fee: number;
+  fee_only: boolean;
+  height: number;
+  income: boolean;
+  kernel: string;
+  receiver: string;
+  sender: string;
+  status: TxStatus;
+  status_string: TxStatusString;
+  txId: string;
+  tx_type: TxType;
+  tx_type_string: string;
+  value: number;
+  invoke_data: Contract[];
+  appname: string;
+}
+export interface WalletChangeEvent {
+  change: number;
+  change_str: string;
+}
+
+export interface TxsEvent extends WalletChangeEvent {
+  txs: Transaction[];
+}

@@ -164,27 +164,31 @@ const Selector = (data: {type: string, onCurrChange: (next)=>void}) => {
     'bETH': () => <IconEth/>,
   };
 
-  return data.type === 'amount' ? (
-    <StyledDropdown>
-      {/* <DropdownElem onClick={toggleDropdown}>
-        {ICONS[selectedItem.name]()}
-        <span className={CurrencyClass}>{selectedItem.name}</span>
-        <Triangle></Triangle>
-      </DropdownElem>
-      <DropdownBody isVisible={isOpen} className={`dropdown-body ${isOpen && 'open'}`}>
-        {items.map(item => (
-          <DropdownElemOption key={item.id} onClick={e => handleItemClick(item)}>
-            {ICONS[item.name]()}
-            <span className={CurrencyClass}>{item.name}</span>
-          </DropdownElemOption>
-        ))}
-      </DropdownBody> */}
-    </StyledDropdown>
-  ) : (data.type === 'fee' ? (<StyledDropdown>
-    {/* <DropdownElem>
-      {selectedItem.name}
-    </DropdownElem> */}
-  </StyledDropdown>) : <></>);
+  return <DropdownElem>
+    BEAM
+  </DropdownElem>;
+
+  // return data.type === 'amount' ? (
+  //   <StyledDropdown>
+  //     {/* <DropdownElem onClick={toggleDropdown}>
+  //       {ICONS[selectedItem.name]()}
+  //       <span className={CurrencyClass}>{selectedItem.name}</span>
+  //       <Triangle></Triangle>
+  //     </DropdownElem>
+  //     <DropdownBody isVisible={isOpen} className={`dropdown-body ${isOpen && 'open'}`}>
+  //       {items.map(item => (
+  //         <DropdownElemOption key={item.id} onClick={e => handleItemClick(item)}>
+  //           {ICONS[item.name]()}
+  //           <span className={CurrencyClass}>{item.name}</span>
+  //         </DropdownElemOption>
+  //       ))}
+  //     </DropdownBody> */}
+  //   </StyledDropdown>
+  // ) : (data.type === 'fee' ? (<StyledDropdown>
+  //   {/* <DropdownElem>
+  //     {selectedItem.name}
+  //   </DropdownElem> */}
+  // </StyledDropdown>) : <></>);
 }
 
 

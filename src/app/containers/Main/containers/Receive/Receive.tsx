@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { styled } from '@linaria/react';
 import { Button, Window } from '@app/shared/components';
 import { css } from '@linaria/core';
-import { BEAM, ROUTES } from '@app/shared/constants';
+import { BEAM, DEFAULT_NETWORK_ID, NETWORKS_BY_ID, ROUTES } from '@app/shared/constants';
 import { IconCancel, 
   IconCopyWhite,
   IconDai,
@@ -13,7 +13,7 @@ import { IconCancel,
   IconArrowManual,
   IconLink } from '@app/shared/icons';
 import { useEffect } from 'react';
-import { LoadPublicKey } from '@app/core/api';
+import { loadPublicKey } from '@core/beamAPI';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -27,7 +27,7 @@ interface BackDropProps {
 }
 
 interface SelectorProps {
-  onCurrChange: (next) => void;
+  onNetworkChanged: (next) => void;
   onPkChanged: (pk) => void;
   className: string;
 }
@@ -64,27 +64,25 @@ const BackDrop: React.FC<BackDropProps> = ({
   );
 };
 
-const Selector: React.FC<SelectorProps> = ({onCurrChange, onPkChanged, className}) => {
+const Selector: React.FC<SelectorProps> = ({onNetworkChanged, onPkChanged, className}) => {
   const dispatch = useDispatch();
   const [isOpen, setOpen] = useState(false);
-  // const [items, setItem] = useState(CURRENCIES);
   const toggleDropdown = () => setOpen(!isOpen);
-  // const [selectedCurrency, setCurr] = useState(items[0]);
+  const [selectedNetwork, setSelectedNetwork] = useState<string>(DEFAULT_NETWORK_ID);
   
-  // useEffect(()=>{
-  //   setCurr(items[0])
-  //   onCurrChange(items[0]);
-  //   LoadPublicKey(null, items[0].cid).then((pk) => {
-  //     onPkChanged(pk);
-  //   });
-  // }, [])
+  useEffect(() => {
+    loadPublicKey(null, BEAM.cid_by_network[selectedNetwork]).then((pk) => {
+      onPkChanged(pk);
+    });
+    onNetworkChanged(selectedNetwork)
+  }, [])
   
-  const handleItemClick = async (item) => {
-    // setCurr(item);
-    // onCurrChange(item);
-    // const pk = await LoadPublicKey(null, item.cid);
-    // onPkChanged(pk);
-    // setOpen(false);
+  const handleNetworkClick = async (id: string) => {
+    setSelectedNetwork(id);
+    onNetworkChanged(id);
+    const pk = await loadPublicKey(null, BEAM.cid_by_network[id]);
+    onPkChanged(pk);
+    setOpen(false);
   }
 
   const StyledDropdown = styled.div`
@@ -140,34 +138,27 @@ const Selector: React.FC<SelectorProps> = ({onCurrChange, onPkChanged, className
     line-height: 1;
     margin-left: 16px;
   `;
-  
-  const ICONS = {
-    'BEAM': () => <IconBeam/>,
-    'bUSDT': () => <IconUsdt/>,
-    'bWBTC': () => <IconWbtc/>,
-    'bDAI': () => <IconDai/>,
-    'bETH': () => <IconEth/>,
-  };
 
   return (<StyledDropdown className={className}>
     <DropdownElem onClick={toggleDropdown}>
-      {/* {ICONS[selectedCurrency.name]()}
-      <span className={CurrencyClass}>{selectedCurrency.name == "BEAM" ? "WBEAM" : selectedCurrency.name}</span> */}
+      <span className={CurrencyClass}>{NETWORKS_BY_ID[selectedNetwork].name}</span>
       <Triangle></Triangle>
     </DropdownElem>
     {
-      isOpen ? 
-      <>
-        <DropdownBody isVisible={isOpen} className={`dropdown-body ${isOpen && 'open'}`}>
-          {/* {items.map(item => (
-            <DropdownElemOption key={item.id} onClick={e => handleItemClick(item)}>
-              {ICONS[item.name]()}
-              <span className={CurrencyClass}>{item.name == "BEAM" ? "WBEAM" : item.name}</span>
-            </DropdownElemOption>
-          ))} */}
-        </DropdownBody>
-        <BackDrop onCancel={()=>setOpen(false)}/>
-      </> : null
+      isOpen && (
+        <>
+          <DropdownBody isVisible={isOpen} className={`dropdown-body ${isOpen && 'open'}`}>
+            {Object.entries(NETWORKS_BY_ID).map(([id, data]) => (
+              <DropdownElemOption key={id} onClick={e => handleNetworkClick(id)}>
+                <span className={CurrencyClass}>
+                  {data.name}
+                </span>
+              </DropdownElemOption>
+            ))}
+          </DropdownBody>
+          <BackDrop onCancel={()=>setOpen(false)}/>
+        </>
+      )
     }
   </StyledDropdown>);
 }
@@ -271,7 +262,7 @@ const Container = styled.div`
   padding: 50px;
   margin-top: 32px;
 
-  > .currency-selector {
+  > .network-selector {
     align-self: center;
   }
 
@@ -394,20 +385,26 @@ const ExpandedContent = styled.div`
 
 const Receive = () => {
   const [pKey, setPk] = useState('');
-  const [selectedCurrency, setCur] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<string>();
+  const [fullLink, setFullLink] = useState<string>();
+  const [fullAddress, setFullAddress] = useState<string>();
   const navigate = useNavigate();
 
-  const getFullLink = () => {
-    return selectedCurrency ? 'https://beam-to-eth-bridge.beam.mw/send/' + (selectedCurrency.name.toLowerCase() + pKey) : '';
-  }
+  // const tmplink = "https://beam-to-eth-bridge.beam.mw/";
+
+  useEffect(() => {
+    const address = `${NETWORKS_BY_ID[selectedNetwork]?.indicator}${pKey}`;
+    setFullAddress(address);
+    setFullLink(`http://localhost:8080/send/${address}`);
+  }, [pKey, selectedNetwork]);
 
   const pkChanged = (pk) => {
     setPk(pk);
   }
 
-  const currChanged = (curr) => {
-    setCur(curr);
+  const networkChanged = (networkId: string) => {
+    setSelectedNetwork(networkId);
   }
 
   const cancelClicked = () => {
@@ -422,100 +419,68 @@ const Receive = () => {
     <Window>
       <ReceiveStyled>
         <Title>
-          WBEAM (Ethereum) ={'>'} BEAM
+          WBEAM ({NETWORKS_BY_ID[selectedNetwork]?.name}) ={'>'} BEAM
         </Title>
         <Container>
-          <Subtitle>Choose currency</Subtitle>
-          <Selector className='currency-selector'
-            onCurrChange={currChanged}
-            onPkChanged={pkChanged}></Selector>
+          <Subtitle>Choose network</Subtitle>
+          <Selector className='network-selector'
+            onNetworkChanged={networkChanged}
+            onPkChanged={pkChanged} 
+          />
+
           <StyledSeparator/>
+
           <div className='automatic-title'>
             <span className='content'>AUTOMATIC WAY</span>
             <span className='info'>(recommended)</span>
           </div>
           <div className='eth-link'>
             <IconLink/>
-            <a className='text' href={getFullLink()} target="_blank">
+            <a className='text' href={fullLink} target="_blank">
               Ethereum side of the bridge
             </a>
           </div>
           <div className='link-info'>(your Beam bridge address will be pasted automatically)</div>
+
           <OrSeparator/>
+
           <div className='manual-expand' onClick={onExpandClicked}>
             <span className='text-expand'>MANUAL WAY TO THE BRIDGE</span>
             <IconArrowManual className={'icon-expand ' + (isExpanded ? 'expanded' : '')}/>
           </div>
-          { isExpanded ? 
-          <ExpandedContent>
-            <ContainerLine>
-              - Copy and open <span className={pTitle}>Ethereum side of the brige </span> 
-              manually in your web browser
-            </ContainerLine>
-            <CopyArea onCopy={()=> 'https://beam-to-eth-bridge.beam.mw/send/'}>
-              {'https://beam-to-eth-bridge.beam.mw/send/'}
-            </CopyArea>
-            <ContainerLine className='sub-link'>
-              - Select <span className={pTitle}>Ethereum to BEAM </span>
-            </ContainerLine>
-            <ContainerLine>
-              - Copy and paste this address to the Beam bridge address field
-            </ContainerLine>
-            {selectedCurrency &&
-              <CopyArea onCopy={()=> (selectedCurrency.name.toLowerCase() + pKey)}>
-                {selectedCurrency.name.toLowerCase() + pKey}
+
+          { isExpanded && (
+            <ExpandedContent>
+              <ContainerLine>
+                - Copy and open <span className={pTitle}>Ethereum side of the brige </span> 
+                manually in your web browser
+              </ContainerLine>
+              <CopyArea onCopy={()=> 'http://localhost:8080/send/'}>
+                {'http://localhost:8080/send/'}
               </CopyArea>
-            }
-          </ExpandedContent> : <></>}
-          {/* <div> */}
-            {/* <ContainerLine>
-              In order to transfer from Ethereum to Beam network, do <span className={BoldClass}>ONE</span> of the following:
-            </ContainerLine>
-            <ContainerLine className={IndentClass}>
-              1. <span className={pTitle}> Automatic way (recommended) </span>
-            </ContainerLine>
-            <ContainerLine>
-              Click to open 
-              <a href={getFullLink()} className={LinkClass} target="_blank"> 
-                Ethereum side of the bridge
-              </a> in your web browser 
-              (your Beam bridge address will be pasted automatically)
-            </ContainerLine>
-            <OrSeparator/>
-            <ContainerLine className={IndentClass}>
-              2. <span className={pTitle}> Manual way </span>
-            </ContainerLine>
-            <ContainerLine>
-              - Copy and open <span className={pTitle}>Ethereum side of the brige </span> 
-              manually in your web browser (your Beam bridge address will be pasted automatically)
-            </ContainerLine>
-            <CopyArea onCopy={()=> getFullLink()}> {getFullLink()} </CopyArea>
-            <OrSeparator/>
-            <ContainerLine className={IndentClass}>
-              2. <span className={pTitle}> Сompletely manual way </span>
-            </ContainerLine>
-            <ContainerLine>
-              - Copy and open <span className={pTitle}>Ethereum side of the brige </span> manually in your web browser
-            </ContainerLine>
-            <CopyArea onCopy={()=> 'https://bridges-dappnet.web.app/send/'}> {'https://bridges-dappnet.web.app/send/'} </CopyArea>
-            <ContainerLine className={SmallIndentClass}>
-              - Select <span className={pTitle}> Ethereum to Beam</span>
-            </ContainerLine>
-            <ContainerLine>
-              - Copy and paste this address to the Beam bridge address field
-            </ContainerLine>
-            {selectedCurrency &&
-            <CopyArea onCopy={()=> (selectedCurrency.name.toLowerCase() + pKey)}> {selectedCurrency.name.toLowerCase() + pKey} </CopyArea>
-            } */}
-          {/* </div> */}
+              <ContainerLine className='sub-link'>
+                - Select <span className={pTitle}>Ethereum to BEAM </span>
+              </ContainerLine>
+              <ContainerLine>
+                - Copy and paste this address to the Beam bridge address field
+              </ContainerLine>
+              <CopyArea onCopy={()=> (fullAddress)}>
+                {fullAddress}
+              </CopyArea>
+            </ExpandedContent>
+          )}
         </Container>
-        <Button variant="ghost" 
-        onClick={cancelClicked} 
-        className={CancelButtonClass} 
-        pallete="purple" 
-        icon={IconCancel}> close</Button>
+
+        <Button
+          variant="ghost" 
+          onClick={cancelClicked} 
+          className={CancelButtonClass} 
+          pallete="purple" 
+          icon={IconCancel}
+        >
+          close
+        </Button>
       </ReceiveStyled>
-      
     </Window>
   );
 };

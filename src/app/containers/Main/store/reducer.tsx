@@ -1,12 +1,12 @@
 import produce from 'immer';
 import { ActionType, createReducer } from 'typesafe-actions';
 
-import { FaucetStateType } from '../interfaces';
+import { BridgeStateType } from '../interfaces';
 import * as actions from './actions';
 
 type Action = ActionType<typeof actions>;
 
-const initialState: FaucetStateType = {
+const initialState: BridgeStateType = {
   bridgeTransactions: [],
   pk: '',
 
@@ -20,20 +20,14 @@ const initialState: FaucetStateType = {
     withdraw: false,
     deposit: false
   },
-  funds: [],
-  relayerFee: null,
-  rate: 0,
-  isDonateInProgress: false,
-  donatedBeam: 0,
-  donatedBeamX: 0
+  relayerFees: {},
+  rates: {},
 };
 
-const reducer = createReducer<FaucetStateType, Action>(initialState)
+const reducer = createReducer<BridgeStateType, Action>(initialState)
   .handleAction(actions.setBridgeTransactions, (state, action) => produce(state, (nexState) => {
     nexState.bridgeTransactions = action.payload;
   }))
-
-
   .handleAction(actions.loadAppParams.success, (state, action) => produce(state, (nexState) => {
     nexState.appParams = action.payload;
   }))
@@ -41,22 +35,10 @@ const reducer = createReducer<FaucetStateType, Action>(initialState)
     nexState.popupsState[action.payload.type] = action.payload.state;
   }))
   .handleAction(actions.loadRate.success, (state, action) => produce(state, (nexState) => {
-    nexState.rate = action.payload;
+    nexState.rates = action.payload;
   }))
-  .handleAction(actions.setDonatedBeam, (state, action) => produce(state, (nexState) => {
-    nexState.donatedBeam = action.payload;
-  }))
-  .handleAction(actions.setDonatedBeamx, (state, action) => produce(state, (nexState) => {
-    nexState.donatedBeamX = action.payload;
-  }))
-  .handleAction(actions.setIsInProgress, (state, action) => produce(state, (nexState) => {
-    nexState.isDonateInProgress = action.payload;
-  }))
-  .handleAction(actions.setFeeValues, (state, action) => produce(state, (nexState) => {
-    nexState.relayerFee = action.payload;
-  }))
-  .handleAction(actions.setFaucetFunds, (state, action) => produce(state, (nexState) => {
-    nexState.funds = action.payload;
+  .handleAction(actions.loadRelayerFees.success, (state, action) => produce(state, (nexState) => {
+    nexState.relayerFees = action.payload;
   }));
 
 export { reducer as MainReducer };

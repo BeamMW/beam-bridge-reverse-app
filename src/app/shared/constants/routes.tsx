@@ -14,5 +14,4 @@ export const ROUTES_PATH = {
     RECEIVE: '/receive',
     SEND: '/send'
   },
-  
 };

@@ -8,7 +8,7 @@ import { actions as mainActions } from '@app/containers/Main/store/index';
 import { navigate, setSystemState } from '@app/shared/store/actions';
 import store from '../../../index';
 import { SharedStateType } from '../interface';
-import { FaucetStateType } from '@app/containers/Main/interfaces';
+import { BridgeStateType } from '@app/containers/Main/interfaces';
 import { TxsEvent } from '@core/types';
 
 import Utils from '@core/utils.js';
@@ -21,7 +21,7 @@ export function remoteEventChannel() {
       "headless": false,
       "apiResultHandler": (error, result, full) => {
         console.log('api result data: ', result, full);
-        if (!result.error) {
+        if (!result?.error) {
           emitter(full);
         }
       }
@@ -59,7 +59,7 @@ function* sharedSaga() {
       const payload: any = yield take(remoteChannel);
       switch (payload.id) {
         case 'ev_system_state':
-          const appParams = (yield select()) as {main: FaucetStateType, shared: SharedStateType};
+          const appParams = (yield select()) as {main: BridgeStateType, shared: SharedStateType};
           store.dispatch(setSystemState(payload.result));
 
           if (appParams.shared.isLoaded) {

@@ -1,18 +1,12 @@
+import { Currency } from "@app/containers/Main/interfaces";
+
 export const GROTHS_IN_BEAM = 100000000;
 export const BEAMX_TVL = 100000000;
 export const BEAMX_TVL_STR = '100 000 000';
+export const ETH_ID = "ethereum";
+export const DEFAULT_NETWORK_ID = "421614";
 
-export const BEAM: {
-  name: string,
-  rate_id: string,
-  id: number,
-  decimals: number,
-  fee_decimals: number,
-  validator_dec: number,
-  cid_by_network: {
-    [network_id: string]: string,
-  },
-} = {
+export const BEAM: Currency = {
   name: 'BEAM',
   rate_id: 'beam',
   id: 1,
@@ -34,4 +28,33 @@ export const NETWORKS_BY_INDICATOR: {
   "sep": 11155111,
   "arbsep": 421614,
   "arb": 42161, 
+};
+
+export const NETWORKS_BY_ID: {
+  [id: string]: {
+    name: string,
+    indicator: string,
+    relayerFeeNetworkId: string,
+  },
+} = {
+  "1": {
+    name: "Ethereum",
+    indicator: "eth",
+    relayerFeeNetworkId: "ethereum"
+  },
+  "11155111": {
+    name: "Sepolia",
+    indicator: "sep",
+    relayerFeeNetworkId: "ethereum-sepolia"
+  },
+  "421614": {
+    name: "Arbitrum Sepolia",
+    indicator: "arbsep",
+    relayerFeeNetworkId: "arbitrum-sepolia"
+  },
+  "42161": {
+    name: "Arbitrum",
+    indicator: "arb",
+    relayerFeeNetworkId: "arbitrum",
+  }, 
 };

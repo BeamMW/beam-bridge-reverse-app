@@ -5,13 +5,13 @@ import { css } from '@linaria/core';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Window, Button, Table, Rate } from '@app/shared/components';
-import { selectAppParams, selectBridgeTransactions, selectRate } from '../../store/selectors';
+import { selectAppParams, selectBridgeTransactions, selectRates } from '../../store/selectors';
 import { IconSend, IconReceive } from '@app/shared/icons';
 import { BEAM, ROUTES } from '@app/shared/constants';
 import { BridgeTransaction } from '@core/types';
 import { Transaction } from '@app/core/types';
 import { IconConfirm } from '@app/shared/icons';
-import { Receive } from '@core/api';
+import { Receive } from '@core/beamAPI';
 
 const Container = styled.div`
   display: flex;
@@ -83,7 +83,7 @@ const ConfirmReceive = styled.div<{disabled?: boolean}>`
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const rate = useSelector(selectRate());
+  const rates = useSelector(selectRates());
   const bridgeTransactions = useSelector(selectBridgeTransactions());
 
   const TABLE_CONFIG = [
@@ -140,35 +140,40 @@ const MainPage: React.FC = () => {
   };
 
   const isDisabled = () => {
-    return rate === 0;
+    return !rates;
   }
 
   return (
-    <>
-      <Window>
-        <Container>
-          <StyledControls>
-            <Button icon={IconSend}
+    <Window>
+      <Container>
+        <StyledControls>
+          <Button
+            icon={IconSend}
             pallete="purple"
             disabled={isDisabled()}
-            onClick={handleSendClick}>
-              BEAM ={'>'} WBEAM (Ethereum)
-            </Button>
-            <Button icon={IconReceive}
+            onClick={handleSendClick}
+          >
+            BEAM ={'>'} WBEAM (Ethereum)
+          </Button>
+
+          <Button
+            icon={IconReceive}
             className={receiveButtonClass}
             pallete="blue"
-            onClick={handleReceiveClick}>
-              WBEAM (Ethereum) ={'>'} BEAM
-            </Button>
-          </StyledControls>
-          <StyledTable>
-            <Table config={TABLE_CONFIG} data={bridgeTransactions} keyBy='MsgId'/>
-            {bridgeTransactions.length === 0 && 
-              <EmptyTableContent>There are no incoming transactions yet</EmptyTableContent>}
-          </StyledTable>
-        </Container>
-      </Window>
-    </>
+            onClick={handleReceiveClick}
+          >
+            WBEAM (Ethereum) ={'>'} BEAM
+          </Button>
+        </StyledControls>
+
+        <StyledTable>
+          <Table config={TABLE_CONFIG} data={bridgeTransactions} keyBy='MsgId'/>
+          { bridgeTransactions.length === 0 && (
+            <EmptyTableContent>There are no incoming transactions yet</EmptyTableContent>
+          )}
+        </StyledTable>
+      </Container>
+    </Window>
   );
 };
 

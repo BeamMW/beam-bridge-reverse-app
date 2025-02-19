@@ -1,7 +1,11 @@
+import { GasPriceItem, RelayFeeParams } from '@app/containers/Main/interfaces';
 import { GROTHS_IN_BEAM } from '@app/shared/constants';
 
 const API_URL = 'https://api.coingecko.com/api/v3/simple/price';
 const LENGTH_MAX = 8;
+const SAFE_FACTOR = 1.2;
+const GWEI_IN_ETH = Math.pow(10, 9);
+const RELAY_COSTS_IN_GAS = 120000;
 
 export const copyToClipboard = (value: string) => {
   let textField = document.createElement('textarea');
@@ -115,16 +119,29 @@ async function loadRate (rate_id: string) {
   return promise;
 }
 
-export async function calcRelayerFee (ethRate, currRate, gasPrice) {
-  const RELAY_COSTS_IN_GAS = 120000;
-  const {FastGasPrice, ProposeGasPrice} = gasPrice;
-  let gasValue = null;
-  if (Number(FastGasPrice) > (2 * Number(ProposeGasPrice))) {
-    gasValue =  2 * Number(ProposeGasPrice); 
-  } else {
-    gasValue = Number(FastGasPrice);
-  }
-  const relayCosts = RELAY_COSTS_IN_GAS * gasValue * ethRate / Math.pow(10, 9);
+// export async function calcRelayerFee (ethRate, currRate, gasPrice) {
+//   const RELAY_COSTS_IN_GAS = 120000;
+//   const {FastGasPrice, ProposeGasPrice} = gasPrice;
+//   let gasValue = null;
+//   if (Number(FastGasPrice) > (2 * Number(ProposeGasPrice))) {
+//     gasValue =  2 * Number(ProposeGasPrice); 
+//   } else {
+//     gasValue = Number(FastGasPrice);
+//   }
+//   const relayCosts = RELAY_COSTS_IN_GAS * gasValue * ethRate / Math.pow(10, 9);
+//   const RELAY_SAFETY_COEFF = 2;//1.1;
+//   return RELAY_SAFETY_COEFF * relayCosts / currRate;
+// }
+
+export function calcRelayFee(params: RelayFeeParams): number {
+  const relayCostsInUSD = (RELAY_COSTS_IN_GAS * params.gasPrice * params.baseCurrencyPriceInUSD) / GWEI_IN_ETH;
   const RELAY_SAFETY_COEFF = 2;//1.1;
-  return RELAY_SAFETY_COEFF * relayCosts / currRate;
+  return RELAY_SAFETY_COEFF * relayCostsInUSD / params.currencyPriceInUSD;
+}
+
+export function getGasPrice(feeData: GasPriceItem): number {
+  const gasPrice = SAFE_FACTOR * Number(feeData.gasPrice.hex) + 
+    (feeData.maxPriorityFeePerGas.hex ? Number(feeData.maxPriorityFeePerGas.hex) : 0);
+
+  return gasPrice / GWEI_IN_ETH;
 }
