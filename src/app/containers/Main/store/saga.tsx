@@ -21,16 +21,22 @@ export function* loadParamsSaga(
       yield call(loadPublicKey, action.payload ? action.payload : null, BEAM.cid_by_network[DEFAULT_NETWORK_ID]);
 
       let bridgeTransactions: BridgeTransaction[] = [];
-      const trs = (yield call(loadIncoming, BEAM.cid_by_network[DEFAULT_NETWORK_ID])) as IncomingTransaction[];
-      trs.forEach((item, i) => {
-        bridgeTransactions.push({
-          amount: item.amount,
-          cid: BEAM.cid_by_network[DEFAULT_NETWORK_ID],
-          pid: i,
-          id: item.MsgId,
-          status: ''
-        })
-      });
+      for (const networkId in BEAM.cid_by_network) {
+        const trs = (yield call(loadIncoming, BEAM.cid_by_network[networkId])) as IncomingTransaction[];
+       
+        if (trs && trs.length > 0) {
+          trs.forEach((item, i) => {
+            bridgeTransactions.push({
+              amount: item.amount,
+              cid: BEAM.cid_by_network[networkId],
+              pid: i,
+              id: item.MsgId,
+              status: '',
+              networkId,
+            })
+          });
+        }
+      }
 
       yield put(actions.setBridgeTransactions(bridgeTransactions));
     

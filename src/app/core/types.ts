@@ -3,16 +3,17 @@ export type Pallete = 'green' | 'ghost' | 'purple' | 'blue' | 'red' | 'white' | 
 export type ButtonVariant = 'regular' | 'ghost' | 'ghostBordered' | 'block' | 'link' | 'icon';
 
 export interface BridgeTransaction {
-  pid: number,
-  status: string,
-  id: string,
-  amount: string,
-  cid: string
+  pid: number;
+  status: string;
+  id: string;
+  amount: string;
+  cid: string;
+  networkId: string;
 }
 
 export interface IncomingTransaction {
-  amount: string,
-  MsgId: string
+  amount: string;
+  MsgId: string;
 }
 
 

@@ -16,7 +16,7 @@ import Utils from '@core/utils.js';
 export function remoteEventChannel() {
   return eventChannel((emitter) => {
     Utils.initialize({
-      "appname": "BEAM Faucet",
+      "appname": "BEAM Bridge",
       "min_api_version": "6.2",
       "headless": false,
       "apiResultHandler": (error, result, full) => {

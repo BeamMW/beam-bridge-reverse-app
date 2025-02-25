@@ -14,9 +14,9 @@ export const BEAM: Currency = {
   fee_decimals: 8,
   validator_dec: 8,
   cid_by_network: {
-    ["1"]: "e63bd26ca5b226558686dd191122a8e5d6861a97597db9f40bda48aef6dbe835",
-    ["11155111"]: "e63bd26ca5b226558686dd191122a8e5d6861a97597db9f40bda48aef6dbe835",
-    ["42161"]: "e63bd26ca5b226558686dd191122a8e5d6861a97597db9f40bda48aef6dbe835",
+    // ["1"]: "e63bd26ca5b226558686dd191122a8e5d6861a97597db9f40bda48aef6dbe835",
+    ["11155111"]: "6e11fbb9b70832da1007a50d74b465027c323ca294699d8e030b5f77d0af3045",
+    // ["42161"]: "e63bd26ca5b226558686dd191122a8e5d6861a97597db9f40bda48aef6dbe835",
     ["421614"]: "6e11fbb9b70832da1007a50d74b465027c323ca294699d8e030b5f77d0af3045",
   },
 };
@@ -24,10 +24,10 @@ export const BEAM: Currency = {
 export const NETWORKS_BY_INDICATOR: {
   [indicator: string]: number,
 } = {
-  "eth": 1,
+  // "eth": 1,
   "sep": 11155111,
   "arbsep": 421614,
-  "arb": 42161, 
+  // "arb": 42161, 
 };
 
 export const NETWORKS_BY_ID: {
@@ -37,11 +37,11 @@ export const NETWORKS_BY_ID: {
     relayerFeeNetworkId: string,
   },
 } = {
-  "1": {
-    name: "Ethereum",
-    indicator: "eth",
-    relayerFeeNetworkId: "ethereum"
-  },
+  // "1": {
+  //   name: "Ethereum",
+  //   indicator: "eth",
+  //   relayerFeeNetworkId: "ethereum"
+  // },
   "11155111": {
     name: "Sepolia",
     indicator: "sep",
@@ -52,9 +52,9 @@ export const NETWORKS_BY_ID: {
     indicator: "arbsep",
     relayerFeeNetworkId: "arbitrum-sepolia"
   },
-  "42161": {
-    name: "Arbitrum",
-    indicator: "arb",
-    relayerFeeNetworkId: "arbitrum",
-  }, 
+  // "42161": {
+  //   name: "Arbitrum",
+  //   indicator: "arb",
+  //   relayerFeeNetworkId: "arbitrum",
+  // }, 
 };

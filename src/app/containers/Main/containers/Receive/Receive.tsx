@@ -396,7 +396,7 @@ const Receive = () => {
   useEffect(() => {
     const address = `${NETWORKS_BY_ID[selectedNetwork]?.indicator}${pKey}`;
     setFullAddress(address);
-    setFullLink(`http://localhost:8080/send/${address}`);
+    setFullLink(`${process.env.API_URL}/send/${address}`);
   }, [pKey, selectedNetwork]);
 
   const pkChanged = (pk) => {
@@ -455,8 +455,8 @@ const Receive = () => {
                 - Copy and open <span className={pTitle}>Ethereum side of the brige </span> 
                 manually in your web browser
               </ContainerLine>
-              <CopyArea onCopy={()=> 'http://localhost:8080/send/'}>
-                {'http://localhost:8080/send/'}
+              <CopyArea onCopy={()=> `${process.env.API_URL}/send/`}>
+                {`${process.env.API_URL}/send/`}
               </CopyArea>
               <ContainerLine className='sub-link'>
                 - Select <span className={pTitle}>Ethereum to BEAM </span>

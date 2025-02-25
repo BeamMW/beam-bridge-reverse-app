@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { styled } from '@linaria/react';
 import { css } from '@linaria/core';
-
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Window, Button, Table, Rate } from '@app/shared/components';
-import { selectAppParams, selectBridgeTransactions, selectRates } from '../../store/selectors';
+import { Window, Button, Table } from '@app/shared/components';
+import { selectBridgeTransactions, selectRates } from '../../store/selectors';
 import { IconSend, IconReceive } from '@app/shared/icons';
-import { BEAM, ROUTES } from '@app/shared/constants';
+import { ROUTES } from '@app/shared/constants';
 import { BridgeTransaction } from '@core/types';
-import { Transaction } from '@app/core/types';
 import { IconConfirm } from '@app/shared/icons';
 import { Receive } from '@core/beamAPI';
 
