@@ -1,6 +1,6 @@
 import { call, put, takeLatest, select } from 'redux-saga/effects';
 import { navigate } from '@app/shared/store/actions';
-import { ROUTES, BEAM, ETH_ID, DEFAULT_NETWORK_ID } from '@app/shared/constants';
+import { ROUTES, BEAM, ETH_ID, DEFAULT_NETWORK_ID, NETWORKS_BY_INDICATOR } from '@app/shared/constants';
 import { loadPublicKey, loadIncoming } from '@core/beamAPI';
 import { calcRelayFee, getGasPrice } from '@core/appUtils';
 import { BridgeTransaction, IncomingTransaction } from '@app/core/types';
@@ -24,7 +24,7 @@ export function* loadParamsSaga(
       for (const networkId in BEAM.cid_by_network) {
         const trs = (yield call(loadIncoming, BEAM.cid_by_network[networkId])) as IncomingTransaction[];
        
-        if (trs && trs.length > 0) {
+        if (trs && trs.length > 0 && Number(networkId) !== NETWORKS_BY_INDICATOR.sep) {
           trs.forEach((item, i) => {
             bridgeTransactions.push({
               amount: item.amount,

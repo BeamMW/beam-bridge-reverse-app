@@ -2,11 +2,11 @@ import React from 'react';
 import { styled } from '@linaria/react';
 import { css } from '@linaria/core';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Window, Button, Table } from '@app/shared/components';
+import { useSelector } from 'react-redux';
+import { Window, Button, Table, Rate } from '@app/shared/components';
 import { selectBridgeTransactions, selectRates } from '../../store/selectors';
 import { IconSend, IconReceive } from '@app/shared/icons';
-import { ROUTES } from '@app/shared/constants';
+import { BEAM, NETWORKS_BY_ID, ROUTES } from '@app/shared/constants';
 import { BridgeTransaction } from '@core/types';
 import { IconConfirm } from '@app/shared/icons';
 import { Receive } from '@core/beamAPI';
@@ -80,7 +80,6 @@ const ConfirmReceive = styled.div<{disabled?: boolean}>`
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const rates = useSelector(selectRates());
   const bridgeTransactions = useSelector(selectBridgeTransactions());
 
@@ -90,16 +89,19 @@ const MainPage: React.FC = () => {
       title: 'Amount',
       fn: (value: string, tr: BridgeTransaction) => {
         // const curr = CURRENCIES.find((item) => item.cid === tr.cid);
-        // const val = parseInt(value) / Math.pow(10, curr.decimals);
-        // const stringVal = val.toFixed(curr.validator_dec).replace(/\.?0+$/,"") + ' ' + curr.name;
+        const val = parseInt(value) / Math.pow(10, BEAM.decimals);
+        const stringVal = val.toFixed(BEAM.validator_dec).replace(/\.?0+$/,"") + ' ' + BEAM.name;
 
-        // return (<>
-        //   <span>{stringVal}</span>
-        //   <Rate value={val}
-        //           selectedCurrencyId={curr.rate_id}
-        //           className={RateStyleClass} />
-        // </>);
-        return <></>
+        return (
+          <>
+            <span>{stringVal}</span>
+            <Rate
+              value={val}
+              selectedCurrencyId={BEAM.rate_id}
+              className={RateStyleClass}
+            />
+          </>
+        );
       }
     },
     {
@@ -108,10 +110,21 @@ const MainPage: React.FC = () => {
       fn: (value: any, tr: BridgeTransaction, index: number) => {
         return (
           <ConfirmReceive 
-          //disabled={isInProgress && (receiveClickedId === itemIndex)} 
-          onClick={() => handleReceiveTrClick(value, tr, index)}>
+            onClick={() => handleReceiveTrClick(value, tr, index)}
+          >
             <div className='text'><IconConfirm/>withdraw</div>
           </ConfirmReceive>
+        )
+      }
+    },
+    {
+      name: 'network',
+      title: 'From Network',
+      fn: (value: any, tr: BridgeTransaction, index: number) => {
+        return (
+          <div> 
+            {NETWORKS_BY_ID[tr.networkId].name}
+          </div>
         )
       }
     }
@@ -127,14 +140,6 @@ const MainPage: React.FC = () => {
 
   const handleReceiveTrClick = (value, tr, index: number) => {
     Receive(tr);
-    // if (receiveClickedId !== index) {
-    //   setActiveReceive(index);
-    //   //receive(tr);
-    // } else {
-    //   if (!isInProgress) {
-    //     //receive(tr);
-    //   }
-    // }
   };
 
   const isDisabled = () => {
