@@ -6,4 +6,8 @@ export interface SharedStateType {
   systemState: SystemState;
   transactions: Transaction[];
   isLoaded: boolean;
+  activeNetwork: {
+    network: string;
+    pk: string;
+  }
 }

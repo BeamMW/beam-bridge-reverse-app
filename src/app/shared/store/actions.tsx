@@ -4,6 +4,10 @@ import { SystemState, Transaction } from '@core/types';
 
 export const navigate = createAction(SharedActionTypes.NAVIGATE)<string>();
 export const setError = createAction(SharedActionTypes.SET_ERROR)<string | null>();
+export const setActiveNetwork = createAction(SharedActionTypes.SET_ACTIVE_NETWORK)<{
+  network: string,
+  pk: string,
+}>();
 
 export const setSystemState = createAction('@@SHARED/SET_SYSTEM_STATE')<SystemState>();
 export const setTransactions = createAction('@@TRANSACTIONS/SET_TRANSACTIONS')<Transaction[]>();

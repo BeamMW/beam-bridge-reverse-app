@@ -12,6 +12,7 @@ import ethereum_address from 'ethereum-address';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRates, selectRelayerFees } from '../../store/selectors';
 import { loadRelayerFees } from '../../store/actions';
+import { selectActiveNetwork } from '@app/shared/store/selectors';
 
 interface SendFormData {
   send_amount: string;
@@ -36,6 +37,7 @@ const Title = styled.div`
   font-weight: bold;
   letter-spacing: 4px;
   text-align: center;
+  text-transform: uppercase;
 `;
 
 const Container = styled.div`
@@ -68,6 +70,7 @@ const Subtitle = styled.p`
   font-size: 14px;
   font-weight: bold;
   letter-spacing: 3.11px;
+  text-transform: uppercase;
 `;
 
 const RateStyleClass = css`
@@ -166,6 +169,7 @@ const Send = () => {
   const [networkId, setNetworkId] = useState<number>(null);
   const [relayerFeeByNetwork, setRelayerFeeByNetwork] = useState<number>();
   const [selectedCurrency, setCurrency] = useState(null);
+  const activeNetwork = useSelector(selectActiveNetwork());
 
   const formik = useFormik<SendFormData>({
     initialValues: {
@@ -277,11 +281,11 @@ const Send = () => {
     <Window>
       <SendStyled autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Title>
-          BEAM TO ETHEREUM
+          BEAM TO {NETWORKS_BY_ID[activeNetwork.network]?.name}
         </Title>
         <Container>
-          <Subtitle>ETHEREUM BRIDGE ADDRESS</Subtitle>
-          <CurrInput placeholder="Paste Ethereum bridge address here"
+          <Subtitle>{NETWORKS_BY_ID[activeNetwork.network]?.name} BRIDGE ADDRESS</Subtitle>
+          <CurrInput placeholder="Paste bridge address here"
             onChangeHandler={handleAddressChange}
             valid={isAddressValid()}
             value={values.address}
@@ -333,14 +337,14 @@ const Send = () => {
           ) : (
           <InfoContainer>
             <ContainerLine>
-              In order to transfer from Beam to Ethereum network, do the following:
+              In order to transfer from Beam to {NETWORKS_BY_ID[activeNetwork.network]?.name} network, do the following:
             </ContainerLine>
             <InfoList>
               <ContainerLine>
                 <Text>1.</Text>
                 <Text>
-                  <a href="https://beam-to-eth-bridge.beam.mw" className={LinkClass} target="_blank"> 
-                    Ethereum side of the bridge
+                  <a href={process.env.API_URL} className={LinkClass} target="_blank">
+                    {NETWORKS_BY_ID[activeNetwork.network]?.name} side of the bridge
                   </a> in your web browser
                 </Text>
               </ContainerLine>
@@ -351,8 +355,8 @@ const Send = () => {
               <ContainerLine>
                 <Text>3.</Text>
                 <Text>
-                  Choose <span className={pTitle}>Beam to Ethereum </span> 
-                  and follow instructions to obtain Ethereum bridge address
+                  Choose <span className={pTitle}>Beam to {NETWORKS_BY_ID[activeNetwork.network]?.name} </span> 
+                  and follow instructions to obtain {NETWORKS_BY_ID[activeNetwork.network]?.name} bridge address
                 </Text>
               </ContainerLine>
               <ContainerLine>

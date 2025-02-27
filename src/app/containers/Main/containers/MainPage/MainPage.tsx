@@ -10,12 +10,13 @@ import { BEAM, NETWORKS_BY_ID, ROUTES } from '@app/shared/constants';
 import { BridgeTransaction } from '@core/types';
 import { IconConfirm } from '@app/shared/icons';
 import { Receive } from '@core/beamAPI';
+import { selectActiveNetwork } from '@app/shared/store/selectors';
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 50px 0;
+  margin: 20px 0;
 `;
 
 const RateStyleClass = css`
@@ -24,7 +25,6 @@ const RateStyleClass = css`
 `;
 
 const StyledControls = styled.div`
-  margin-top: 50px;
   display: flex;
   flex-direction: row;
 `;
@@ -82,6 +82,7 @@ const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const rates = useSelector(selectRates());
   const bridgeTransactions = useSelector(selectBridgeTransactions());
+  const activeNetwork = useSelector(selectActiveNetwork());
 
   const TABLE_CONFIG = [
     {
@@ -156,7 +157,7 @@ const MainPage: React.FC = () => {
             disabled={isDisabled()}
             onClick={handleSendClick}
           >
-            BEAM ={'>'} WBEAM (Ethereum)
+            BEAM ={'>'} WBEAM ({NETWORKS_BY_ID[activeNetwork.network]?.name})
           </Button>
 
           <Button
@@ -165,7 +166,7 @@ const MainPage: React.FC = () => {
             pallete="blue"
             onClick={handleReceiveClick}
           >
-            WBEAM (Ethereum) ={'>'} BEAM
+            WBEAM ({NETWORKS_BY_ID[activeNetwork.network]?.name}) ={'>'} BEAM
           </Button>
         </StyledControls>
 

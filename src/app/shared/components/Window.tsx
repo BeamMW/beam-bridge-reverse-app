@@ -7,6 +7,7 @@ import { selectPopupsState } from '@app/containers/Main/store/selectors';
 import { DepositPopup, WithdrawPopup } from './';
 import { setPopupState } from '@app/containers/Main/store/actions';
 import { css } from '@linaria/core';
+import { Selector } from './Selector';
 
 interface WindowProps {
   onPrevious?: React.MouseEventHandler | undefined;
@@ -80,15 +81,14 @@ const Window: React.FC<WindowProps> = ({
   children,
   onPrevious
 }) => {
-  const navigate = useNavigate();
   const rootRef = useRef();
   const dispatch = useDispatch();
-
   const popupsState = useSelector(selectPopupsState());
   
   return (
     <>
       <Container bgColor={Utils.getStyles().background_main} ref={rootRef}>
+        <Selector />
         { children }
       </Container>
 

@@ -9,3 +9,4 @@ export const selectErrorMessage = () => createSelector(selectShared, (state) => 
 export const selectSystemState = () => createSelector(selectShared, (state) => state.systemState);
 export const selectIsLoaded = () => createSelector(selectShared, (state) => state.isLoaded);
 export const selectTransactions = () => createSelector(selectShared, (state) => state.transactions);
+export const selectActiveNetwork = () => createSelector(selectShared, (state) => state.activeNetwork);

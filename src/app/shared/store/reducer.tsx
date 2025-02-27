@@ -3,6 +3,7 @@ import { ActionType, createReducer } from 'typesafe-actions';
 
 import { SharedStateType } from '../interface';
 import * as actions from './actions';
+import { BEAM, DEFAULT_NETWORK_ID } from '../constants';
 
 type Action = ActionType<typeof actions>;
 
@@ -21,7 +22,11 @@ const initialState: SharedStateType = {
     tip_state_timestamp: 0
   },
   transactions: [],
-  isLoaded: false
+  isLoaded: false,
+  activeNetwork: {
+    network: DEFAULT_NETWORK_ID,
+    pk: BEAM.cid_by_network[DEFAULT_NETWORK_ID],
+  },
 };
 
 const reducer = createReducer<SharedStateType, Action>(initialState)
@@ -38,6 +43,9 @@ const reducer = createReducer<SharedStateType, Action>(initialState)
   }))
   .handleAction(actions.setIsLoaded, (state, action) => produce(state, (nexState) => {
     nexState.isLoaded = action.payload;
+  }))
+  .handleAction(actions.setActiveNetwork, (state, action) => produce(state, (nexState) => {
+    nexState.activeNetwork = action.payload;
   }))
   .handleAction(actions.setSystemState, (state, action) => produce(state, (nexState) => {
     nexState.systemState = action.payload;

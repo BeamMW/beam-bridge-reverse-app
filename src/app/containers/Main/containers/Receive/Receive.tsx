@@ -14,153 +14,17 @@ import { IconCancel,
   IconLink } from '@app/shared/icons';
 import { useEffect } from 'react';
 import { loadPublicKey } from '@core/beamAPI';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
-interface DropdownProps {
-  isVisible: boolean
-}
-
-interface BackDropProps {
-  onCancel?: React.MouseEventHandler;
-}
-
-interface SelectorProps {
-  onNetworkChanged: (next) => void;
-  onPkChanged: (pk) => void;
-  className: string;
-}
+import { selectActiveNetwork } from '@app/shared/store/selectors';
 
 interface CopyAreaProps {
   onCopy?: any;
 }
 
-const BackdropStyled = styled.div`
-  position: fixed;
-  z-index: 3;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`;
-
-const BackDrop: React.FC<BackDropProps> = ({
-  onCancel,
-  children,
-}) => {
-  const rootRef = useRef();
-
-  const handleOutsideClick = (event) => {
-    if (event.target === rootRef.current) {
-      onCancel(event);
-    }
-  };
-
-  return (
-    <BackdropStyled ref={rootRef} onClick={handleOutsideClick}>
-      { children }
-    </BackdropStyled>
-  );
-};
-
-const Selector: React.FC<SelectorProps> = ({onNetworkChanged, onPkChanged, className}) => {
-  const dispatch = useDispatch();
-  const [isOpen, setOpen] = useState(false);
-  const toggleDropdown = () => setOpen(!isOpen);
-  const [selectedNetwork, setSelectedNetwork] = useState<string>(DEFAULT_NETWORK_ID);
-  
-  useEffect(() => {
-    loadPublicKey(null, BEAM.cid_by_network[selectedNetwork]).then((pk) => {
-      onPkChanged(pk);
-    });
-    onNetworkChanged(selectedNetwork)
-  }, [])
-  
-  const handleNetworkClick = async (id: string) => {
-    setSelectedNetwork(id);
-    onNetworkChanged(id);
-    const pk = await loadPublicKey(null, BEAM.cid_by_network[id]);
-    onPkChanged(pk);
-    setOpen(false);
-  }
-
-  const StyledDropdown = styled.div`
-    margin-top: 20px;
-  `;
-
-  const DropdownElem = styled.div`
-    cursor: pointer;
-    background-color: transparent;
-    border: none;
-    font-size: 20px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 234px;
-    height: 55px;
-    border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.05);
-    padding: 15px 24px;
-  `;
-
-  const DropdownElemOption = styled.div`
-    font-size: 16px;
-    padding: 8px 0;
-    cursor: pointer;
-    font-size: 16px;
-    letter-spacing: 0.4px;
-    display: flex;
-    align-items: center;
-  `;
-
-  const DropdownBody = styled.div<DropdownProps>`
-    z-index: 100;
-    width: 234px;
-    border-radius: 10px;
-    position: absolute;
-    background-color: #1c3a59;
-    margin-top: 10px;
-    padding: 12px 24px;
-    display: ${({ isVisible }) => `${isVisible ? 'block' : 'none'}`};
-  `;
-
-  const Triangle = styled.div`
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #8da1ad;
-    margin-left: auto;
-  `;
-
-  const CurrencyClass = css`
-    line-height: 1;
-    margin-left: 16px;
-  `;
-
-  return (<StyledDropdown className={className}>
-    <DropdownElem onClick={toggleDropdown}>
-      <span className={CurrencyClass}>{NETWORKS_BY_ID[selectedNetwork].name}</span>
-      <Triangle></Triangle>
-    </DropdownElem>
-    {
-      isOpen && (
-        <>
-          <DropdownBody isVisible={isOpen} className={`dropdown-body ${isOpen && 'open'}`}>
-            {Object.entries(NETWORKS_BY_ID).map(([id, data]) => (
-              <DropdownElemOption key={id} onClick={e => handleNetworkClick(id)}>
-                <span className={CurrencyClass}>
-                  {data.name}
-                </span>
-              </DropdownElemOption>
-            ))}
-          </DropdownBody>
-          <BackDrop onCancel={()=>setOpen(false)}/>
-        </>
-      )
-    }
-  </StyledDropdown>);
+interface BackDropProps {
+  onCancel?: React.MouseEventHandler;
 }
 
 const OrSeparator: React.FC<BackDropProps> = ({}) => {
@@ -261,11 +125,6 @@ const Container = styled.div`
   background-color: rgba(255, 255, 255, 0.05);
   padding: 50px;
   margin-top: 32px;
-
-  > .network-selector {
-    align-self: center;
-  }
-
   > .automatic-title {
     font-weight: 700;
     font-size: 14px;
@@ -384,28 +243,19 @@ const ExpandedContent = styled.div`
 `;
 
 const Receive = () => {
-  const [pKey, setPk] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<string>();
   const [fullLink, setFullLink] = useState<string>();
   const [fullAddress, setFullAddress] = useState<string>();
   const navigate = useNavigate();
+  const activeNetwork = useSelector(selectActiveNetwork());
 
   // const tmplink = "https://beam-to-eth-bridge.beam.mw/";
 
   useEffect(() => {
-    const address = `${NETWORKS_BY_ID[selectedNetwork]?.indicator}${pKey}`;
+    const address = `${NETWORKS_BY_ID[activeNetwork.network]?.indicator}${activeNetwork.pk}`;
     setFullAddress(address);
     setFullLink(`${process.env.API_URL}/send/${address}`);
-  }, [pKey, selectedNetwork]);
-
-  const pkChanged = (pk) => {
-    setPk(pk);
-  }
-
-  const networkChanged = (networkId: string) => {
-    setSelectedNetwork(networkId);
-  }
+  }, [activeNetwork]);
 
   const cancelClicked = () => {
     navigate(ROUTES.MAIN.MAIN_PAGE);
@@ -419,17 +269,9 @@ const Receive = () => {
     <Window>
       <ReceiveStyled>
         <Title>
-          WBEAM ({NETWORKS_BY_ID[selectedNetwork]?.name}) ={'>'} BEAM
+          WBEAM ({NETWORKS_BY_ID[activeNetwork.network]?.name}) ={'>'} BEAM
         </Title>
         <Container>
-          <Subtitle>Choose network</Subtitle>
-          <Selector className='network-selector'
-            onNetworkChanged={networkChanged}
-            onPkChanged={pkChanged} 
-          />
-
-          <StyledSeparator/>
-
           <div className='automatic-title'>
             <span className='content'>AUTOMATIC WAY</span>
             <span className='info'>(recommended)</span>
@@ -437,7 +279,7 @@ const Receive = () => {
           <div className='eth-link'>
             <IconLink/>
             <a className='text' href={fullLink} target="_blank">
-              Ethereum side of the bridge
+              {NETWORKS_BY_ID[activeNetwork.network]?.name} side of the bridge
             </a>
           </div>
           <div className='link-info'>(your Beam bridge address will be pasted automatically)</div>
@@ -452,14 +294,14 @@ const Receive = () => {
           { isExpanded && (
             <ExpandedContent>
               <ContainerLine>
-                - Copy and open <span className={pTitle}>Ethereum side of the brige </span> 
+                - Copy and open <span className={pTitle}>{NETWORKS_BY_ID[activeNetwork.network]?.name} side of the brige </span> 
                 manually in your web browser
               </ContainerLine>
               <CopyArea onCopy={()=> `${process.env.API_URL}/send/`}>
                 {`${process.env.API_URL}/send/`}
               </CopyArea>
               <ContainerLine className='sub-link'>
-                - Select <span className={pTitle}>Ethereum to BEAM </span>
+                - Select <span className={pTitle}>{NETWORKS_BY_ID[activeNetwork.network]?.name} to BEAM </span>
               </ContainerLine>
               <ContainerLine>
                 - Copy and paste this address to the Beam bridge address field
