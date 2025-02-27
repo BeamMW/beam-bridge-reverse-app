@@ -223,8 +223,12 @@ const Send = () => {
     const regex = new RegExp('^[A-Za-z0-9]+$');
     if (!regex.test(separatedAddress) || !ethereum_address.isAddress(separatedAddress) || !NETWORKS_BY_INDICATOR[networkIndicator]) {
       errorsValidation.address = `Unrecognized address`;
+      return errorsValidation;
     }
 
+    if (NETWORKS_BY_INDICATOR[networkIndicator] !== Number(activeNetwork.network)) {
+      errorsValidation.address = `Incorrect network`;
+    }
     return errorsValidation;
   };
 
