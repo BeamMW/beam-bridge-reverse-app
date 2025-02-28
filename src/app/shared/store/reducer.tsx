@@ -24,8 +24,8 @@ const initialState: SharedStateType = {
   transactions: [],
   isLoaded: false,
   activeNetwork: {
-    network: DEFAULT_NETWORK_ID,
-    pk: BEAM.cid_by_network[DEFAULT_NETWORK_ID],
+    network: "",
+    pk: "",
   },
 };
 

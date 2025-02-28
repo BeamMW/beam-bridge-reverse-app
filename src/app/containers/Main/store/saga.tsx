@@ -1,5 +1,5 @@
 import { call, put, takeLatest, select } from 'redux-saga/effects';
-import { navigate } from '@app/shared/store/actions';
+import { navigate, setActiveNetwork } from '@app/shared/store/actions';
 import { ROUTES, BEAM, ETH_ID, DEFAULT_NETWORK_ID, NETWORKS_BY_INDICATOR } from '@app/shared/constants';
 import { loadPublicKey, loadIncoming } from '@core/beamAPI';
 import { calcRelayFee, getGasPrice } from '@core/appUtils';
@@ -42,6 +42,13 @@ export function* loadParamsSaga(
     
       const isLoaded = yield select(selectIsLoaded());
       if (!isLoaded) {
+        const pk = yield call(loadPublicKey, null, BEAM.cid_by_network[DEFAULT_NETWORK_ID]);
+
+        yield put(setActiveNetwork({
+          network: DEFAULT_NETWORK_ID,
+          pk
+        }));
+
         store.dispatch(setIsLoaded(true));
         yield put(navigate(ROUTES.MAIN.MAIN_PAGE));
       }
