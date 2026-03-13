@@ -1,6 +1,0 @@
-export enum SharedActionTypes {
-  NAVIGATE = '@@SHARED/NAVIGATE',
-  SET_ERROR = '@@SHARED/SET_ERROR',
-
-  SET_ACTIVE_NETWORK = "@@SHARED/SET_ACTIVE_NETWORK",
-}

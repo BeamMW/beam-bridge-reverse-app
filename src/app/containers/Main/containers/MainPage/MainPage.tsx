@@ -3,7 +3,7 @@ import { styled } from '@linaria/react';
 import { css } from '@linaria/core';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Window, Button, Table, Rate } from '@app/shared/components';
+import { Window, Button, Table, Rate, Panel, BeamMark, BridgeArrow, NetworkIcon } from '@app/shared/components';
 import { selectBridgeTransactions, selectRates } from '../../store/selectors';
 import { IconSend, IconReceive } from '@app/shared/icons';
 import { BEAM, NETWORKS_BY_ID, ROUTES } from '@app/shared/constants';
@@ -15,8 +15,9 @@ import { selectActiveNetwork } from '@app/shared/store/selectors';
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin: 20px 0;
+  gap: 28px;
+  max-width: 1120px;
+  margin: 0 auto;
 `;
 
 const RateStyleClass = css`
@@ -24,47 +25,75 @@ const RateStyleClass = css`
   align-self: start;
 `;
 
+const BridgeLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+`;
+
+const BridgePart = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1;
+`;
+
+const BridgeIconClass = css`
+  width: 16px;
+  height: 16px;
+  display: block;
+`;
+
+const BridgeArrowClass = css`
+  width: 14px;
+  height: 14px;
+  display: block;
+`;
+
 const StyledControls = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 `;
 
-const StyledTable = styled.div`
-  margin-top: 30px;
-  border-radius: 10px;
-  overflow: hidden;
-`;
+const ControlItem = styled.div`
+  margin-right: 32px;
+  margin-bottom: 16px;
 
-const receiveButtonClass = css`
-    margin-left: 20px !important;
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
 const EmptyTableContent = styled.div`
   text-align: center;
-  margin-top: 72px;
-  font-size: 14px;
+  margin-top: 16px;
+  font-size: 13px;
   font-style: italic;
-  color: #8da1ad;
+  color: rgba(255, 255, 255, 0.6);
 `;
 
-const ConfirmReceive = styled.div<{disabled?: boolean}>`
-  width: 167px;
-  height: 32px;
-  padding: 8px 16px;
-  border-radius: 17.5px;
-  border: solid 1px #0bccf7;
-  background-color: rgba(11, 204, 247, 0.1);
-  color: #0bccf7;
+const ConfirmReceive = styled.div`
+  width: 148px;
+  height: 28px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: solid 1px rgba(11, 204, 247, 0.5);
+  background-color: rgba(11, 204, 247, 0.08);
+  color: rgba(11, 204, 247, 0.9);
   text-align: center;
-  font-size: 14px;
-  cursor: ${({ disabled }) => disabled ? "not-allowed" : "pointer"};
-  opacity: ${({ disabled }) => disabled ? "0.5" : ""};
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 1;
   display: flex;
   flex-direction: row;
 
   &:hover,
   &:active {
-    box-shadow: ${({ disabled }) => disabled ? "none" : "0 0 8px white"};
+    box-shadow: 0 0 6px rgba(11, 204, 247, 0.4);
   }
 
   > .text {
@@ -76,6 +105,23 @@ const ConfirmReceive = styled.div<{disabled?: boolean}>`
       margin-right: 10px;
     }
   }
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+`;
+
+const SectionTitle = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+`;
+
+const SectionSubtitle = styled.div`
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
 `;
 
 const MainPage: React.FC = () => {
@@ -108,10 +154,10 @@ const MainPage: React.FC = () => {
     {
       name: 'status',
       title: 'Status',
-      fn: (value: any, tr: BridgeTransaction, index: number) => {
+      fn: (_value: any, tr: BridgeTransaction) => {
         return (
           <ConfirmReceive 
-            onClick={() => handleReceiveTrClick(value, tr, index)}
+            onClick={() => handleReceiveTrClick(tr)}
           >
             <div className='text'><IconConfirm/>withdraw</div>
           </ConfirmReceive>
@@ -121,7 +167,7 @@ const MainPage: React.FC = () => {
     {
       name: 'network',
       title: 'From Network',
-      fn: (value: any, tr: BridgeTransaction, index: number) => {
+      fn: (_value: any, tr: BridgeTransaction) => {
         return (
           <div> 
             {NETWORKS_BY_ID[tr.networkId].name}
@@ -139,7 +185,7 @@ const MainPage: React.FC = () => {
     navigate(ROUTES.MAIN.RECEIVE);
   };
 
-  const handleReceiveTrClick = (value, tr, index: number) => {
+  const handleReceiveTrClick = (tr: BridgeTransaction) => {
     Receive(tr);
   };
 
@@ -151,31 +197,58 @@ const MainPage: React.FC = () => {
     <Window>
       <Container>
         <StyledControls>
-          <Button
-            icon={IconSend}
-            pallete="purple"
-            disabled={isDisabled()}
-            onClick={handleSendClick}
-          >
-            BEAM ={'>'} WBEAM ({NETWORKS_BY_ID[activeNetwork.network]?.name})
-          </Button>
+          <ControlItem>
+            <Button
+              icon={IconSend}
+              pallete="purple"
+              disabled={isDisabled()}
+              onClick={handleSendClick}
+            >
+              <BridgeLabel>
+                <BridgePart>
+                  <span>BEAM</span>
+                  <BeamMark className={BridgeIconClass} />
+                </BridgePart>
+                <BridgeArrow className={BridgeArrowClass} />
+                <BridgePart>
+                  <span>WBEAM</span>
+                  <NetworkIcon chainId={activeNetwork.network} className={BridgeIconClass} />
+                </BridgePart>
+              </BridgeLabel>
+            </Button>
+          </ControlItem>
 
-          <Button
-            icon={IconReceive}
-            className={receiveButtonClass}
-            pallete="blue"
-            onClick={handleReceiveClick}
-          >
-            WBEAM ({NETWORKS_BY_ID[activeNetwork.network]?.name}) ={'>'} BEAM
-          </Button>
+          <ControlItem>
+            <Button
+              icon={IconReceive}
+              pallete="blue"
+              onClick={handleReceiveClick}
+            >
+              <BridgeLabel>
+                <BridgePart>
+                  <span>WBEAM</span>
+                  <NetworkIcon chainId={activeNetwork.network} className={BridgeIconClass} />
+                </BridgePart>
+                <BridgeArrow className={BridgeArrowClass} />
+                <BridgePart>
+                  <span>BEAM</span>
+                  <BeamMark className={BridgeIconClass} />
+                </BridgePart>
+              </BridgeLabel>
+            </Button>
+          </ControlItem>
         </StyledControls>
 
-        <StyledTable>
-          <Table config={TABLE_CONFIG} data={bridgeTransactions} keyBy='MsgId'/>
+        <Panel>
+          <SectionHeader>
+            <SectionTitle>Recent activity</SectionTitle>
+            <SectionSubtitle>Incoming bridge transactions</SectionSubtitle>
+          </SectionHeader>
+          <Table config={TABLE_CONFIG} data={bridgeTransactions} />
           { bridgeTransactions.length === 0 && (
             <EmptyTableContent>There are no incoming transactions yet</EmptyTableContent>
           )}
-        </StyledTable>
+        </Panel>
       </Container>
     </Window>
   );

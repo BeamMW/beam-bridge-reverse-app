@@ -1,12 +1,8 @@
-import { createSelector } from 'reselect';
-
 import { AppState } from '../interface';
 
 const selectShared = (state: AppState) => state.shared;
 
-export const selectRouterLink = () => createSelector(selectShared, (state) => state.routerLink);
-export const selectErrorMessage = () => createSelector(selectShared, (state) => state.errorMessage);
-export const selectSystemState = () => createSelector(selectShared, (state) => state.systemState);
-export const selectIsLoaded = () => createSelector(selectShared, (state) => state.isLoaded);
-export const selectTransactions = () => createSelector(selectShared, (state) => state.transactions);
-export const selectActiveNetwork = () => createSelector(selectShared, (state) => state.activeNetwork);
+export const selectRouterLink = () => (state: AppState) => selectShared(state).routerLink;
+export const selectSystemState = () => (state: AppState) => selectShared(state).systemState;
+export const selectIsLoaded = () => (state: AppState) => selectShared(state).isLoaded;
+export const selectActiveNetwork = () => (state: AppState) => selectShared(state).activeNetwork;

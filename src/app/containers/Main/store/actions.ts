@@ -1,34 +1,47 @@
-import { createAsyncAction, createAction } from 'typesafe-actions';
-import { BridgeTransaction, BridgeAppParams } from '@core/types';
+import { BridgeTransaction } from '@core/types';
 import { Currency, RatesApiResponse, RelayerFees } from '../interfaces';
 
-export const setBridgeTransactions = createAction('@@MAIN/SET_BRIDGE_TRANSACTIONS')<BridgeTransaction[]>();
-export const setPk = createAction('@@MAIN/SET_PK')<string>();
+export const setBridgeTransactions = (payload: BridgeTransaction[]) => ({
+  type: '@@MAIN/SET_BRIDGE_TRANSACTIONS' as const,
+  payload,
+});
 
+export const loadAppParams = {
+  request: (payload: ArrayBuffer | null) => ({
+    type: '@@MAIN/LOAD_PARAMS' as const,
+    payload,
+  }),
+  failure: (payload: any) => ({
+    type: '@@MAIN/LOAD_PARAMS_FAILURE' as const,
+    payload,
+  }),
+};
 
-export const setAppParams = createAction('@@MAIN/SET_PARAMS')<BridgeAppParams>();
-export const setIsInProgress = createAction('@@MAIN/SET_IS_IN_PROGRESS')<boolean>();
-export const setFeeValues = createAction('@@MAIN/SET_FEE_VALUES')<any>();
+export const loadRate = {
+  request: () => ({
+    type: '@@MAIN/GET_RATE' as const,
+  }),
+  success: (payload: RatesApiResponse | null) => ({
+    type: '@@MAIN/GET_RATE_SUCCESS' as const,
+    payload,
+  }),
+  failure: (payload: any) => ({
+    type: '@@MAIN/GET_RATE_FAILURE' as const,
+    payload,
+  }),
+};
 
-export const setPopupState = createAction('@@MAIN/SET_POPUP_STATE')<{type: string, state: boolean}>();
-
-export const loadAppParams = createAsyncAction(
-    '@@MAIN/LOAD_PARAMS',
-    '@@MAIN/LOAD_PARAMS_SUCCESS',
-    '@@MAIN/LOAD_PARAMS_FAILURE',
-)<ArrayBuffer, BridgeAppParams, any>();
-
-export const loadRate = createAsyncAction(
-    '@@MAIN/GET_RATE',
-    '@@MAIN/GET_RATE_SUCCESS',
-    '@@MAIN/GET_RATE_FAILURE',
-  )<void, RatesApiResponse, any>();
-
-  export const loadRelayerFees = createAsyncAction(
-    '@@MAIN/GET_RELAYER_FEES',
-    '@@MAIN/GET_RELAYER_FEES_SUCCESS',
-    '@@MAIN/GET_RELAYER_FEES_FAILURE',
-  )<{
-    currency: Currency,
-    rates: RatesApiResponse,
-  }, RelayerFees, any>();
+export const loadRelayerFees = {
+  request: (payload: { currency: Currency; rates: RatesApiResponse }) => ({
+    type: '@@MAIN/GET_RELAYER_FEES' as const,
+    payload,
+  }),
+  success: (payload: RelayerFees) => ({
+    type: '@@MAIN/GET_RELAYER_FEES_SUCCESS' as const,
+    payload,
+  }),
+  failure: (payload: any) => ({
+    type: '@@MAIN/GET_RELAYER_FEES_FAILURE' as const,
+    payload,
+  }),
+};

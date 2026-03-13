@@ -1,15 +1,14 @@
-import produce from 'immer';
-import { ActionType, createReducer } from 'typesafe-actions';
-
 import { SharedStateType } from '../interface';
 import * as actions from './actions';
-import { BEAM, DEFAULT_NETWORK_ID } from '../constants';
 
-type Action = ActionType<typeof actions>;
+type Action =
+  | ReturnType<typeof actions.navigate>
+  | ReturnType<typeof actions.setActiveNetwork>
+  | ReturnType<typeof actions.setSystemState>
+  | ReturnType<typeof actions.setIsLoaded>;
 
 const initialState: SharedStateType = {
   routerLink: '',
-  errorMessage: null,
   systemState: {
     current_height: 0,
     current_state_hash: '',
@@ -21,7 +20,6 @@ const initialState: SharedStateType = {
     tip_state_hash: '',
     tip_state_timestamp: 0
   },
-  transactions: [],
   isLoaded: false,
   activeNetwork: {
     network: "",
@@ -29,26 +27,35 @@ const initialState: SharedStateType = {
   },
 };
 
-const reducer = createReducer<SharedStateType, Action>(initialState)
-  .handleAction(actions.navigate, (state, action) => produce(state, (nexState) => {
-    nexState.routerLink = action.payload;
-  }))
-  .handleAction(actions.setTransactions, (state, action) => produce(state, (nexState) => {
-    nexState.transactions = state.transactions.length
-      ? [...new Map([...state.transactions, ...action.payload].map((item) => [item.txId, item])).values()]
-      : action.payload;
-  }))
-  .handleAction(actions.setError, (state, action) => produce(state, (nexState) => {
-    nexState.errorMessage = action.payload;
-  }))
-  .handleAction(actions.setIsLoaded, (state, action) => produce(state, (nexState) => {
-    nexState.isLoaded = action.payload;
-  }))
-  .handleAction(actions.setActiveNetwork, (state, action) => produce(state, (nexState) => {
-    nexState.activeNetwork = action.payload;
-  }))
-  .handleAction(actions.setSystemState, (state, action) => produce(state, (nexState) => {
-    nexState.systemState = action.payload;
-  }));
+const reducer = (state: SharedStateType = initialState, action: Action): SharedStateType => {
+  switch (action.type) {
+    case '@@SHARED/NAVIGATE': {
+      return {
+        ...state,
+        routerLink: action.payload,
+      };
+    }
+    case '@@SHARED/SET_IS_LOADED': {
+      return {
+        ...state,
+        isLoaded: action.payload,
+      };
+    }
+    case '@@SHARED/SET_ACTIVE_NETWORK': {
+      return {
+        ...state,
+        activeNetwork: action.payload,
+      };
+    }
+    case '@@SHARED/SET_SYSTEM_STATE': {
+      return {
+        ...state,
+        systemState: action.payload,
+      };
+    }
+    default:
+      return state;
+  }
+};
 
 export { reducer as SharedReducer };

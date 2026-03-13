@@ -1,15 +1,8 @@
-import { BridgeTransaction, BridgeAppParams } from '@core/types';
+import { BridgeTransaction } from '@core/types';
 import BigNumber from 'bignumber.js';
 
 export interface BridgeStateType {
   bridgeTransactions: BridgeTransaction[];
-  pk: string;
-  
-  appParams: BridgeAppParams;
-  popupsState: {
-    deposit: boolean;
-    withdraw: boolean;
-  };
   rates: RatesApiResponse;
   relayerFees: RelayerFees;
 };
@@ -44,11 +37,11 @@ export interface GasPriceResponse {
 };
 
 export interface Currency {
+  id?: number;
   name: string;
   rate_id: string;
-  id: number;
   decimals: number;
-  fee_decimals: number;
+  fee_decimals?: number;
   validator_dec: number;
   cid_by_network: {
     [network_id: string]: string;

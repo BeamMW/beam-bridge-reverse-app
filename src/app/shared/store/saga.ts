@@ -1,15 +1,12 @@
 import {
-  call, take, fork, takeLatest, put, select
+  call, take, put, select
 } from 'redux-saga/effects';
 
 import { eventChannel, END } from 'redux-saga';
-import { actions } from '@app/shared/store/index';
-import { actions as mainActions } from '@app/containers/Main/store/index';
-import { navigate, setSystemState } from '@app/shared/store/actions';
-import store from '../../../index';
+import * as mainActions from '@app/containers/Main/store/actions';
+import { setSystemState } from '@app/shared/store/actions';
 import { SharedStateType } from '../interface';
 import { BridgeStateType } from '@app/containers/Main/interfaces';
-import { TxsEvent } from '@core/types';
 
 import Utils from '@core/utils.js';
 
@@ -20,18 +17,16 @@ export function remoteEventChannel() {
       "min_api_version": "6.2",
       "headless": false,
       "apiResultHandler": (error, result, full) => {
-        console.log('api result data: ', result, full);
         if (!result?.error) {
           emitter(full);
         }
       }
     }, (err) => {
         Utils.download("./pipe_app.wasm", (err, bytes) => {
-            Utils.callApi("ev_subunsub", {ev_txs_changed: true, ev_system_state: true}, 
+            Utils.callApi("ev_subunsub", {ev_system_state: true}, 
               (error, result, full) => {
                 if (result) {
-                  store.dispatch(mainActions.loadAppParams.request(bytes));
-                  store.dispatch(mainActions.loadRate.request());
+                  emitter({ id: 'init', bytes });
                 }
               }
             );
@@ -47,10 +42,6 @@ export function remoteEventChannel() {
 }
 
 
-export function* handleTransactions(payload: TxsEvent) {
-  yield put(actions.setTransactions(payload.txs));
-}
-
 function* sharedSaga() {
   const remoteChannel = yield call(remoteEventChannel);
 
@@ -59,17 +50,19 @@ function* sharedSaga() {
       const payload: any = yield take(remoteChannel);
       switch (payload.id) {
         case 'ev_system_state':
-          const appParams = (yield select()) as {main: BridgeStateType, shared: SharedStateType};
-          store.dispatch(setSystemState(payload.result));
+          const appState = (yield select()) as {main: BridgeStateType, shared: SharedStateType};
+          yield put(setSystemState(payload.result));
 
-          if (appParams.shared.isLoaded) {
-            store.dispatch(mainActions.loadAppParams.request(null));
+          if (appState.shared.isLoaded) {
+            yield put(mainActions.loadAppParams.request(null));
           }
 
           break;
         
-        case 'ev_txs_changed':
-          yield fork(handleTransactions, payload.result);
+        case 'init':
+          yield put(mainActions.loadAppParams.request(payload.bytes));
+          yield put(mainActions.loadRate.request());
+          break;
 
         default:
           break;

@@ -1,4 +1,4 @@
-import { call, put, takeLatest, select } from 'redux-saga/effects';
+import { call, delay, put, takeLatest, select } from 'redux-saga/effects';
 import { navigate, setActiveNetwork } from '@app/shared/store/actions';
 import { ROUTES, BEAM, ETH_ID, DEFAULT_NETWORK_ID, NETWORKS_BY_INDICATOR } from '@app/shared/constants';
 import { loadPublicKey, loadIncoming } from '@core/beamAPI';
@@ -7,9 +7,8 @@ import { BridgeTransaction, IncomingTransaction } from '@app/core/types';
 import { setIsLoaded } from '@app/shared/store/actions';
 import { selectIsLoaded } from '@app/shared/store/selectors';
 
-import { actions } from '.';
-import store from '../../../../index';
-import { GasPriceItem, GasPriceResponse, RatesApiResponse } from '../interfaces';
+import * as actions from './actions';
+import { GasPriceResponse, RatesApiResponse } from '../interfaces';
 
 const FETCH_INTERVAL = 5000;
 const API_URL = 'https://explorer-api.beam.mw/bridges';
@@ -25,13 +24,11 @@ export function* loadParamsSaga(
         const trs = (yield call(loadIncoming, BEAM.cid_by_network[networkId])) as IncomingTransaction[];
        
         if (trs && trs.length > 0 && Number(networkId) !== NETWORKS_BY_INDICATOR.sep) {
-          trs.forEach((item, i) => {
+          trs.forEach((item) => {
             bridgeTransactions.push({
               amount: item.amount,
               cid: BEAM.cid_by_network[networkId],
-              pid: i,
               id: item.MsgId,
-              status: '',
               networkId,
             })
           });
@@ -49,7 +46,7 @@ export function* loadParamsSaga(
           pk
         }));
 
-        store.dispatch(setIsLoaded(true));
+        yield put(setIsLoaded(true));
         yield put(navigate(ROUTES.MAIN.MAIN_PAGE));
       }
     } catch (e) {
@@ -57,26 +54,21 @@ export function* loadParamsSaga(
     }
 }
 
-async function loadRatesCached(): Promise<RatesApiResponse> {
+async function loadRatesCached(): Promise<RatesApiResponse | null> {
   try {
     const response = await fetch(`${API_URL}/rates`);
-    if (response.status === 200) {
-      const promise = await response.json();
-      return promise;
-    }
-
-    return null;
+    return response.ok ? await response.json() : null;
   } catch (error) {
-    console.log(error)
+    return null;
   }
 }
 
-async function loadGasPricesApiCall(): Promise<GasPriceResponse> {
+async function loadGasPricesApiCall(): Promise<GasPriceResponse | null> {
   try {
     const response = await fetch(`${API_URL}/gasprices`);
-    return await response.json();
+    return response.ok ? await response.json() : null;
   } catch (error) {
-    console.log(error);
+    return null;
   }
 }
 
@@ -84,7 +76,8 @@ export function* loadRatesSaga() {
   try {
     const ratesApiResponse = yield call(loadRatesCached);
     yield put(actions.loadRate.success(ratesApiResponse));
-    setTimeout(() => store.dispatch(actions.loadRate.request()), FETCH_INTERVAL);
+    yield delay(FETCH_INTERVAL);
+    yield put(actions.loadRate.request());
   } catch (e) {
     yield put(actions.loadRate.failure(e));
   }
@@ -92,17 +85,30 @@ export function* loadRatesSaga() {
 
 export function* loadRelayerFeesSaga(action: ReturnType<typeof actions.loadRelayerFees.request>): Generator {
   try {
-    const gasPricesResponse = (yield call(loadGasPricesApiCall)) as GasPriceItem;
+    const gasPricesResponse = (yield call(loadGasPricesApiCall)) as GasPriceResponse | null;
+    if (!gasPricesResponse) {
+      throw new Error('Failed to load gas prices');
+    }
     const fees = Object.entries(gasPricesResponse).map(([network, gasPriceValue]) => {
-      const gasPrice = getGasPrice(gasPriceValue);
+      const gasPrice = getGasPrice(gasPriceValue, network);
 
-      const relayFee = calcRelayFee({
+      const currencyRateUSD = action.payload?.rates?.[action.payload?.currency?.rate_id]?.usd;
+      const baseRateUSD = action.payload?.rates?.[ETH_ID]?.usd;
+
+      // Prevent runtime crashes if rates are missing/partial.
+      if (!currencyRateUSD || !baseRateUSD) {
+        return [network, 0];
+      }
+
+      const feeParams = {
         gasPrice,
-        currencyPriceInUSD: action.payload.rates[action.payload.currency.rate_id].usd,
-        baseCurrencyPriceInUSD: action.payload.rates[ETH_ID].usd,
+        currencyPriceInUSD: currencyRateUSD,
+        baseCurrencyPriceInUSD: baseRateUSD,
         currencyDecimals: action.payload.currency.decimals,
-      });
+      };
 
+      const relayFee = calcRelayFee(feeParams);
+      
       return [network, relayFee];
     });
     const relayerFees = Object.fromEntries(fees);
@@ -113,9 +119,9 @@ export function* loadRelayerFeesSaga(action: ReturnType<typeof actions.loadRelay
 }
 
 function* mainSaga() {
-    yield takeLatest(actions.loadAppParams.request, loadParamsSaga);
-    yield takeLatest(actions.loadRate.request, loadRatesSaga);
-    yield takeLatest(actions.loadRelayerFees.request, loadRelayerFeesSaga);
+    yield takeLatest('@@MAIN/LOAD_PARAMS', loadParamsSaga);
+    yield takeLatest('@@MAIN/GET_RATE', loadRatesSaga);
+    yield takeLatest('@@MAIN/GET_RELAYER_FEES', loadRelayerFeesSaga);
 }
 
 export default mainSaga;

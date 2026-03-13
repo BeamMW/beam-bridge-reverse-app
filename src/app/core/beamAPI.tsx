@@ -7,7 +7,6 @@ export function loadPublicKey<T = any>(payload, cid: string): Promise<T> {
   return new Promise((resolve, reject) => {
     Utils.invokeContract("role=user,action=get_pk,cid=" + cid, 
       (error, result, full) => {
-        console.log(full)
         resolve(result.pubkey);
       },
       payload ? payload : null,
@@ -55,31 +54,9 @@ export function Receive<T = any>(tr): Promise<T> {
   });
 }
 
-export function LoadViewParams<T = any>(payload): Promise<T> {
-  return new Promise((resolve, reject) => {
-    Utils.invokeContract("role=user,action=view_params,cid="+CID, 
-      (error, result, full) => {
-        resolve(result.params);
-      },
-      payload ? payload : null,
-    );
-  });
-}
-
 export function UserDeposit<T = any>(amount: number, aid: number): Promise<T> {
   return new Promise((resolve, reject) => {
     Utils.invokeContract("role=user,action=deposit,amount="+ amount +",aid=" + aid + ",cid=" + CID, 
-      (error, result, full) => {
-        onMakeTx(error, result, full);
-        resolve(result);
-      },
-    );
-  });
-}
-
-export function UserWithdraw<T = any>(amount: number, aid: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    Utils.invokeContract("role=user,action=withdraw,amount="+ amount +",aid=" + aid + ",cid=" + CID, 
       (error, result, full) => {
         onMakeTx(error, result, full);
         resolve(result);

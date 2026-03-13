@@ -1,39 +1,18 @@
 import { GasPriceItem, RelayFeeParams } from '@app/containers/Main/interfaces';
-import { GROTHS_IN_BEAM } from '@app/shared/constants';
+import { BigNumber as EthersBigNumber, utils as ethersUtils } from 'ethers';
 
-const API_URL = 'https://api.coingecko.com/api/v3/simple/price';
-const LENGTH_MAX = 8;
-const SAFE_FACTOR = 1.2;
 const GWEI_IN_ETH = Math.pow(10, 9);
 const RELAY_COSTS_IN_GAS = 120000;
+const RELAY_SAFETY_COEFF = 2;
 
 export const copyToClipboard = (value: string) => {
-  let textField = document.createElement('textarea');
+  const textField = document.createElement('textarea');
   textField.innerText = value;
   document.body.appendChild(textField);
   textField.select();
   document.execCommand('copy');
   textField.remove();
 };
-
-export function compact(value: string, stringLength: number = 5): string {
-  if (value.length <= 11) {
-    return value;
-  }
-  return `${value.substr(0, stringLength)}…${value.substr(-stringLength, stringLength)}`;
-}
-
-export function truncate(value: string): string {
-  if (!value) {
-    return '';
-  }
-
-  if (value.length <= LENGTH_MAX) {
-    return value;
-  }
-
-  return `${value.slice(0, LENGTH_MAX)}…`;
-}
 
 export function toUSD(amount: number, rate: number): string {
   switch (true) {
@@ -48,100 +27,29 @@ export function toUSD(amount: number, rate: number): string {
   }
 }
 
-export function calcVotingPower(value: number, fullValue: number) {
-  if (!value || value == 0) {
-    return 0;
-  }
-
-  const power = Number((100 / (fullValue / value)).toFixed(2));
-  if (power < 1) {
-    return '< 1';
-  }
-
-  return power;
-}
-
-export function fromGroths(value: number): number {
-  return value && value !== 0 ? value / GROTHS_IN_BEAM : 0;
-}
-
-export function toGroths(value: number): number {
-  return value > 0 ? Math.floor(value * GROTHS_IN_BEAM) : 0;
-}
-
 export function getSign(positive: boolean): string {
   return positive ? '+ ' : '- ';
 }
-
-export function Base64DecodeUrl(str){
-  if (str.length % 4 != 0)
-    str += ('===').slice(0, 4 - (str.length % 4));
-  return str.replace(/-/g, '+').replace(/_/g, '/');
-}
-
-export function getProposalId (id: number) {
-  if (id < 10) {
-      return '000' + id;
-  } else if (id < 100) {
-      return '00' + id;
-  } else if (id < 1000) {
-      return '0' + id;
-  } 
-}
-
-export function Base64EncodeUrl(str){
-  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
-}
-
-export function openInNewTab (url) {
-  const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
-  if (newWindow) newWindow.opener = null
-}
-
-export function numFormatter(num) {
-  if (num > 999 && num < 1000000) {
-      return parseFloat((num / 1000).toFixed(2)) + 'K';  
-  } else if (num >= 1000000) {
-      return parseFloat((num / 1000000).toFixed(2)) + 'M';
-  } else if (num <= 999){
-      return parseFloat(num.toFixed(2));
-  }
-}
-
-async function loadRate (rate_id: string) {
-  const response = await fetch(`${API_URL}?ids=${rate_id}&vs_currencies=usd`, {
-    mode: 'cors',
-    headers: {
-      'Access-Control-Allow-Origin':'*'
-    }
-  });
-  const promise: Promise<any> = response.json();
-  return promise;
-}
-
-// export async function calcRelayerFee (ethRate, currRate, gasPrice) {
-//   const RELAY_COSTS_IN_GAS = 120000;
-//   const {FastGasPrice, ProposeGasPrice} = gasPrice;
-//   let gasValue = null;
-//   if (Number(FastGasPrice) > (2 * Number(ProposeGasPrice))) {
-//     gasValue =  2 * Number(ProposeGasPrice); 
-//   } else {
-//     gasValue = Number(FastGasPrice);
-//   }
-//   const relayCosts = RELAY_COSTS_IN_GAS * gasValue * ethRate / Math.pow(10, 9);
-//   const RELAY_SAFETY_COEFF = 2;//1.1;
-//   return RELAY_SAFETY_COEFF * relayCosts / currRate;
-// }
-
 export function calcRelayFee(params: RelayFeeParams): number {
   const relayCostsInUSD = (RELAY_COSTS_IN_GAS * params.gasPrice * params.baseCurrencyPriceInUSD) / GWEI_IN_ETH;
-  const RELAY_SAFETY_COEFF = 2;//1.1;
-  return RELAY_SAFETY_COEFF * relayCostsInUSD / params.currencyPriceInUSD;
+  const result = RELAY_SAFETY_COEFF * relayCostsInUSD / params.currencyPriceInUSD;
+
+  return result;
 }
 
-export function getGasPrice(feeData: GasPriceItem): number {
-  const gasPrice = SAFE_FACTOR * Number(feeData.gasPrice.hex) + 
-    (feeData.maxPriorityFeePerGas.hex ? Number(feeData.maxPriorityFeePerGas.hex) : 0);
+export function getGasPrice(feeData: GasPriceItem, debugNetwork?: string): number {
+  // Parse hex-encoded wei values safely (no JS number precision issues).
+  const baseWei = EthersBigNumber.from(feeData.gasPrice?.hex ?? 0);
+  const rawPriorityWei = EthersBigNumber.from(feeData.maxPriorityFeePerGas?.hex ?? 0);
+  // Arbitrum: ignore priority fee.
+  const priorityWei = debugNetwork === 'arbitrum' ? EthersBigNumber.from(0) : rawPriorityWei;
 
-  return gasPrice / GWEI_IN_ETH;
+  // Apply safety factor (1.2x) using integer math; ceil to avoid underestimating.
+  const baseWithSafetyWei = baseWei.mul(12).add(9).div(10);
+  const totalWei = baseWithSafetyWei.add(priorityWei);
+
+  // Convert wei -> gwei as a float for downstream USD fee calc.
+  const totalGwei = parseFloat(ethersUtils.formatUnits(totalWei, 9));
+
+  return totalGwei;
 }

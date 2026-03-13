@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { ROUTES } from '@app/shared/constants';
-import { css } from '@linaria/core';
-
-import { actions as sharedActions, selectors as sharedSelectors } from '@app/shared/store';
+import { navigate as navigateAction } from '@app/shared/store/actions';
+import { selectRouterLink } from '@app/shared/store/selectors';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { useNavigate, useRoutes } from 'react-router-dom';
@@ -10,16 +9,8 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { MainContainer } from './containers/Main';
 import { ToastContainer } from 'react-toastify';
-import { Scrollbars } from 'react-custom-scrollbars';
-import { ethers } from "ethers";
 
 import './styles';
-
-const trackStyle = css`
-  z-index: 999;
-  border-radius: 3px;
-  background-color: rgba(255, 255, 255, 0.2);
-`;
 
 const routes = [
   {
@@ -36,19 +27,17 @@ const App = () => {
   const dispatch = useDispatch();
   const content = useRoutes(routes);
   const navigate = useNavigate();
-  const navigateURL = useSelector(sharedSelectors.selectRouterLink());
+  const navigateURL = useSelector(selectRouterLink());
 
   useEffect(() => {
     if (navigateURL) {
       navigate(navigateURL);
-      dispatch(sharedActions.navigate(''));
+      dispatch(navigateAction(''));
     }
   }, [navigateURL, dispatch, navigate]);
 
   return (
-    <Scrollbars
-        renderThumbVertical={(props) => <div {...props} className={trackStyle} />}
-      >
+    <div>
       {content}
       <ToastContainer
           position="bottom-right"
@@ -71,7 +60,7 @@ const App = () => {
             borderRadius: '10px',
           }}
         />
-    </Scrollbars>
+    </div>
   );
 };
 

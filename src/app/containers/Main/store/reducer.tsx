@@ -1,44 +1,37 @@
-import produce from 'immer';
-import { ActionType, createReducer } from 'typesafe-actions';
-
 import { BridgeStateType } from '../interfaces';
 import * as actions from './actions';
 
-type Action = ActionType<typeof actions>;
+type Action =
+  | ReturnType<typeof actions.setBridgeTransactions>
+  | ReturnType<typeof actions.loadRate.success>
+  | ReturnType<typeof actions.loadRelayerFees.success>;
 
 const initialState: BridgeStateType = {
   bridgeTransactions: [],
-  pk: '',
-
-  appParams: {
-    backlogPeriod: 0,
-    enabled: 0,
-    isAdmin: 0,
-    withdrawLimit: 0
-  },
-  popupsState: {
-    withdraw: false,
-    deposit: false
-  },
   relayerFees: {},
   rates: {},
 };
 
-const reducer = createReducer<BridgeStateType, Action>(initialState)
-  .handleAction(actions.setBridgeTransactions, (state, action) => produce(state, (nexState) => {
-    nexState.bridgeTransactions = action.payload;
-  }))
-  .handleAction(actions.loadAppParams.success, (state, action) => produce(state, (nexState) => {
-    nexState.appParams = action.payload;
-  }))
-  .handleAction(actions.setPopupState, (state, action) => produce(state, (nexState) => {
-    nexState.popupsState[action.payload.type] = action.payload.state;
-  }))
-  .handleAction(actions.loadRate.success, (state, action) => produce(state, (nexState) => {
-    nexState.rates = action.payload;
-  }))
-  .handleAction(actions.loadRelayerFees.success, (state, action) => produce(state, (nexState) => {
-    nexState.relayerFees = action.payload;
-  }));
+const reducer = (state: BridgeStateType = initialState, action: Action): BridgeStateType => {
+  switch (action.type) {
+    case '@@MAIN/SET_BRIDGE_TRANSACTIONS':
+      return {
+        ...state,
+        bridgeTransactions: action.payload,
+      };
+    case '@@MAIN/GET_RATE_SUCCESS':
+      return {
+        ...state,
+        rates: action.payload ?? {},
+      };
+    case '@@MAIN/GET_RELAYER_FEES_SUCCESS':
+      return {
+        ...state,
+        relayerFees: action.payload,
+      };
+    default:
+      return state;
+  }
+};
 
 export { reducer as MainReducer };

@@ -21,23 +21,25 @@ const BaseButtonStyled = styled.button<ButtonProps>`
 `;
 
 const ButtonStyled = styled(BaseButtonStyled)`
-  display: block;
-  width: 100%;
-  max-width: 274px;
-  margin: 0 auto;
-  margin-bottom: 10px;
-  padding: 10px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 180px;
+  margin: 0;
+  padding: 10px 20px;
   border: none;
-  border-radius: 22px;
+  border-radius: 14px;
   background-color: ${({ pallete }) => `var(--color-${pallete})`};
   text-align: center;
-  font-weight: bold;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.3px;
   color: var(--color-dark-blue);
 
   &:hover,
   &:active {
-    box-shadow: 0 0 8px white;
+    filter: brightness(1.05);
     cursor: pointer;
   }
 
@@ -51,12 +53,11 @@ const GhostBorderedButtonStyled = styled(ButtonStyled)`
   background-color: rgba(0, 246, 210, .1);
   color: ${({ pallete }) => `var(--color-${pallete})`};
   border: ${({ pallete }) => `1px solid var(--color-${pallete})`};
-  max-width: 215px;
-  padding: 8px 18px;
+  min-width: 160px;
+  padding: 8px 16px;
 
   &:hover,
   &:active {
-    box-shadow: 0 0 8px rgba(0, 246, 210, 0.15);
     background-color: rgba(0, 246, 210, 0.3);
   }
 
@@ -72,7 +73,6 @@ const GhostButtonStyled = styled(ButtonStyled)`
 
   &:hover,
   &:active {
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
     background-color: rgba(255, 255, 255, 0.3);
   }
 `;
@@ -80,10 +80,10 @@ const GhostButtonStyled = styled(ButtonStyled)`
 const BlockButtonStyled = styled(GhostButtonStyled)`
   width: 100%;
   max-width: none;
-  padding: 18px;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.03);
-  font-size: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 3px;

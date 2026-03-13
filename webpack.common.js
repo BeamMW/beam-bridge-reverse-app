@@ -60,7 +60,7 @@ module.exports = (env) => {
     plugins: [
       new webpack.DefinePlugin({
         'process.env.API_URL': JSON.stringify(
-          isProduction ? 'https://arbbridges-test-app.web.app' : 'http://localhost:8080'
+          isProduction ? 'https://beam-bridge-reverse-ethapp-production.up.railway.app' : 'http://localhost:8080'
         ),
       }),
       new MiniCssExtractPlugin({

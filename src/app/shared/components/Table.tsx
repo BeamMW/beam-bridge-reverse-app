@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { styled } from '@linaria/react';
-import { useEffect } from 'react';
 
 interface CellConfig {
   name: string;
@@ -9,19 +8,25 @@ interface CellConfig {
 }
 
 interface TableProps {
-  keyBy: string;
   data: any[];
   config: CellConfig[];
 }
 
 const StyledTable = styled.table`
-  width: 630px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+
+  tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
 `;
 
 const StyledThead = styled.thead`
-  height: 40px;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.05);
 `;
 
 const isPositive = (value: number) => 1 / value > 0;
@@ -30,28 +35,25 @@ const Header = styled.th<{ active: boolean }>`
   text-align: left;
   color: ${({ active }) => {
     if (!active) {
-      return '#8da1ad';
+      return 'rgba(255, 255, 255, 0.6)';
     }
-    return active ? '#ffffff' : '#8da1ad';
+    return active ? '#ffffff' : 'rgba(255, 255, 255, 0.6)';
   }};
-  padding: 15px 30px;
+  padding: 12px 18px;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  font-weight: 700;
 `;
 
 const Column = styled.td`
-  padding: 20px 30px;
-  background-color: rgba(13, 77, 118, .9);
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 `;
 
-const Table: React.FC<TableProps> = ({ keyBy, data, config }) => {
-  const [receiveClickedId, setActiveReceive] = useState(null);
-  const isInProgress =  false 
-
+const Table: React.FC<TableProps> = ({ data, config }) => {
   const [filterBy, setFilterBy] = useState(0);
-  let tableData = [...data];
-
-  useEffect(() => {
-    tableData = [...data];
-  },[data]);
+  const tableData = [...data];
 
   const sortFn = (objectA, objectB) => {
     const name = config[Math.abs(filterBy)].name;
@@ -71,25 +73,29 @@ const Table: React.FC<TableProps> = ({ keyBy, data, config }) => {
     setFilterBy(index === filterBy ? -filterBy : index);
   };
 
+  const hasData = tableData && tableData.length > 0;
+
   return  (
     <StyledTable>
-      <StyledThead>
-        <tr>
-          {config.map(({ title }, index) => (
-            <Header
-              key={index}
-              data-index={index}
-              active={
-                index !== Math.abs(filterBy) ? null : isPositive(filterBy)
-              }
-              onClick={handleSortClick}>
-                {title}
-            </Header>
-          ))}
-        </tr>
-      </StyledThead>
+      {hasData && (
+        <StyledThead>
+          <tr>
+            {config.map(({ title }, index) => (
+              <Header
+                key={index}
+                data-index={index}
+                active={
+                  index !== Math.abs(filterBy) ? null : isPositive(filterBy)
+                }
+                onClick={handleSortClick}>
+                  {title}
+              </Header>
+            ))}
+          </tr>
+        </StyledThead>
+      )}
       <tbody>
-        {tableData && tableData.length > 0 ? tableData.sort(sortFn).map((item, index) => (
+        {hasData ? tableData.sort(sortFn).map((item, index) => (
           <tr key={index}>
             {config.map(({ name, fn }, itemIndex) => {
               const value = item[name];

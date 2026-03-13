@@ -1,164 +1,200 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import { styled } from '@linaria/react';
-import { Button, Window } from '@app/shared/components';
+import { BeamMark, BridgeArrow, NetworkIcon, Panel, Window } from '@app/shared/components';
 import { css } from '@linaria/core';
-import { BEAM, DEFAULT_NETWORK_ID, NETWORKS_BY_ID, ROUTES } from '@app/shared/constants';
-import { IconCancel, 
+import { NETWORKS_BY_ID, ROUTES } from '@app/shared/constants';
+import {
   IconCopyWhite,
-  IconDai,
-  IconEth,
-  IconUsdt,
-  IconWbtc,
-  IconBeam,
   IconArrowManual,
   IconLink } from '@app/shared/icons';
-import { useEffect } from 'react';
-import { loadPublicKey } from '@core/beamAPI';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { selectActiveNetwork } from '@app/shared/store/selectors';
+import { copyToClipboard } from '@core/appUtils';
 
 interface CopyAreaProps {
-  onCopy?: any;
+  onCopy: () => string;
 }
 
-interface BackDropProps {
-  onCancel?: React.MouseEventHandler;
-}
+const StyledOrSeparator = styled.span`
+  display: flex;
+  flex-direction: row;
+  margin: 16px 0;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+`;
 
-const OrSeparator: React.FC<BackDropProps> = ({}) => {
-  const StyledOrSeparator = styled.span`
-    display: flex;
-    flex-direction: row;
-    margin: 20px 0;
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-  `;
+const OrSeparatorText = styled.span`
+  font-size: 13px;
+  font-style: italic;  
+  color: rgba(255, 255, 255, 0.6);
+`;
 
-  const Text = styled.span`
-    font-size: 16px;
-    font-style: italic;  
-    color: rgba(255, 255, 255, 0.7);
-  `;
+const OrSeparatorLine = styled.span`
+  height: 1px;
+  width: 170px;
+  background-color: rgba(255, 255, 255, 0.08);
+`;
 
-  const Line = styled.span`
-    height: 1px;
-    width: 202px;
-    background-color: rgba(255, 255, 255, 0.1);
-  `;
-
+const OrSeparator: React.FC = () => {
   return (
     <StyledOrSeparator>
-      <Line/>
-      <Text>or</Text>
-      <Line/>
+      <OrSeparatorLine/>
+      <OrSeparatorText>or</OrSeparatorText>
+      <OrSeparatorLine/>
     </StyledOrSeparator>
   );
 };
+
+const StyledArea = styled.div`
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.18);
+  margin-top: 8px;
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: 480px;
+`;
+
+const CopyContent = styled.div`
+  margin-right: 16px;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 420px;
+  word-break: break-word;
+`;
+
+const CopyClass = css`
+  cursor: pointer;
+`;
 
 const CopyArea: React.FC<CopyAreaProps> = ({
   onCopy,
   children,
 }) => {
-  const StyledArea = styled.div`
-    padding: 8px 10px;
-    border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.05);
-    margin-top: 10px;
-    display: inline-flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    max-width: 480px;
-  `;
-
-  const Content = styled.div`
-    margin-right: 20px;
-    font-size: 14px;
-    font-style: italic;
-    color: #b7c1cb;
-    max-width: 424px;
-    word-break: break-word;
-  `;
-
-  const CopyClass = css`
-    cursor: pointer;
-  `;
-
   const handleCopyClick = () => {
     const dataToCopy = onCopy();
-    const el = document.createElement('textarea');
-    el.value = dataToCopy;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    toast('Copied to clipboard');
+    if (dataToCopy) {
+      copyToClipboard(dataToCopy);
+      toast('Copied to clipboard');
+    }
   }
 
   return (
     <StyledArea>
-      <Content>{children}</Content>
+      <CopyContent>{children}</CopyContent>
       <IconCopyWhite className={CopyClass} onClick={handleCopyClick}/>
     </StyledArea>
   );
 };
 
 const ReceiveStyled = styled.div`
-  width: 580px;
+  width: 100%;
+  max-width: 640px;
   margin: 0 auto !important;
-`;
-
-const Title = styled.div`
-  font-size: 14px;
-  font-weight: bold;
-  letter-spacing: 4px;
-  text-align: center;
-`;
-
-const Container = styled.div`
   display: flex;
   flex-direction: column;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 50px;
-  margin-top: 32px;
+  gap: 24px;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+`;
+
+const TitleBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const PageTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0;
+`;
+
+const PageSubtitle = styled.p`
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 16px 0;
+`;
+
+const BackButton = styled.button`
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: white;
+  }
+`;
+
+const Container = styled(Panel)`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   > .automatic-title {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2.2px;
+    color: rgba(255, 255, 255, 0.7);
 
     > .content {
-      letter-spacing: 2.625px;
+      letter-spacing: 2.2px;
     }
 
     > .info {
       letter-spacing: 1px;
+      opacity: 0.6;
+      margin-left: 6px;
     }
   }
 
   > .eth-link {
     display: flex;
-    margin-top: 20px;
+    margin-top: 6px;
     cursor: pointer;
 
     > .text {
       font-style: italic;
-      font-weight: 500;
-      font-size: 16px;
+      font-weight: 600;
+      font-size: 14px;
       color: #00F6D2;
       margin-left: 10px;
       text-decoration: none;
     }
   }
 
+  > .eth-link.disabled {
+    cursor: default;
+    opacity: 0.6;
+
+    > .text {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+
   > .link-info {
     font-style: italic;
     font-weight: 400;
-    font-size: 14px;
-    color: #B7C1CB;
-    margin-top: 7px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0;
   }
 
   > .manual-expand {
@@ -167,10 +203,9 @@ const Container = styled.div`
 
     > .text-expand {
       font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 2.625px;
+      font-size: 12px;
+      letter-spacing: 2px;
       opacity: 0.5;
-      text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     }
 
     > .icon-expand {
@@ -183,37 +218,41 @@ const Container = styled.div`
   }
 `;
 
-const Subtitle = styled.div`
-  opacity: 0.7;
-  font-size: 16px;
-  font-style: italic;
-  text-align: center;
-`;
-
-const StyledSeparator = styled.div`
-  height: 1px;
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin-top: 50px;
-  margin-bottom: 40px;
-`;
-
 const ContainerLine = styled.p`
-  color: rgba(255, 255, 255, .7);
-  font-size: 16px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
   font-style: italic;
 `;
 
-const BoldClass = css`
-  font-weight: bold;
+const TitleBridgeLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 `;
 
-const IndentClass = css`
-  margin-top: 20px;
+const TitleBridgePart = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
 `;
 
-const SmallIndentClass = css`
-  margin-top: 10px;
+const TitleTokenLabel = styled.span`
+  letter-spacing: 0.6px;
+  padding: 0 4px;
+`;
+
+const TitleIconClass = css`
+  width: 18px;
+  height: 18px;
+  display: block;
+`;
+
+const TitleArrowClass = css`
+  width: 14px;
+  height: 14px;
+  display: block;
 `;
 
 const pTitle = css`
@@ -221,21 +260,8 @@ const pTitle = css`
   font-weight: bold;
 `;
 
-const LinkClass = css`
-  color: #00f6d2;
-  text-decoration: none;
-  font-weight: bold
-  margin-left: 4px;
-`;
-
-const CancelButtonClass = css`
-  margin-top: 30px !important;
-  margin-bottom: 50px !important;
-  max-width: 133px !important;
-`;
-
 const ExpandedContent = styled.div`
-  margin-top: 20px;
+  margin-top: 12px;
 
   > .sub-link {
     margin-top: 10px;
@@ -244,45 +270,71 @@ const ExpandedContent = styled.div`
 
 const Receive = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [fullLink, setFullLink] = useState<string>();
-  const [fullAddress, setFullAddress] = useState<string>();
   const navigate = useNavigate();
   const activeNetwork = useSelector(selectActiveNetwork());
+  const networkName = NETWORKS_BY_ID[activeNetwork.network]?.name ?? 'Network';
+  const apiUrl = (process.env.API_URL || '').trim().replace(/\/$/, '');
+  const hasApiUrl = Boolean(apiUrl);
 
-  // const tmplink = "https://beam-to-eth-bridge.beam.mw/";
-
-  useEffect(() => {
-    const address = `${NETWORKS_BY_ID[activeNetwork.network]?.indicator}${activeNetwork.pk}`;
-    setFullAddress(address);
-    setFullLink(`${process.env.API_URL}/send/${address}`);
-  }, [activeNetwork]);
-
-  const cancelClicked = () => {
-    navigate(ROUTES.MAIN.MAIN_PAGE);
-  }
+  const { fullAddress, fullLink, manualLink } = useMemo(() => {
+    const indicator = NETWORKS_BY_ID[activeNetwork.network]?.indicator ?? '';
+    const pk = activeNetwork?.pk ?? '';
+    const address = indicator && pk ? `${indicator}${pk}` : '';
+    return {
+      fullAddress: address,
+      fullLink: hasApiUrl && address ? `${apiUrl}/send/${address}` : '',
+      manualLink: hasApiUrl ? `${apiUrl}/send/` : '',
+    };
+  }, [activeNetwork, apiUrl, hasApiUrl]);
 
   const onExpandClicked = () => {
-    setIsExpanded(!isExpanded);
+    setIsExpanded((prev) => !prev);
   }
 
   return (
     <Window>
       <ReceiveStyled>
-        <Title>
-          WBEAM ({NETWORKS_BY_ID[activeNetwork.network]?.name}) ={'>'} BEAM
-        </Title>
+        <HeaderRow>
+          <TitleBlock>
+            <PageTitle>
+              <TitleBridgeLabel>
+                <TitleBridgePart>
+                  <TitleTokenLabel>WBEAM</TitleTokenLabel>
+                  <NetworkIcon chainId={activeNetwork.network} className={TitleIconClass} />
+                </TitleBridgePart>
+                <BridgeArrow className={TitleArrowClass} />
+                <TitleBridgePart>
+                  <TitleTokenLabel>BEAM</TitleTokenLabel>
+                  <BeamMark className={TitleIconClass} />
+                </TitleBridgePart>
+              </TitleBridgeLabel>
+            </PageTitle>
+            <PageSubtitle>Copy your {networkName} bridge address and paste it into Beam Wallet.</PageSubtitle>
+          </TitleBlock>
+          <BackButton type="button" onClick={() => navigate(ROUTES.MAIN.MAIN_PAGE)}>
+            Back
+          </BackButton>
+        </HeaderRow>
         <Container>
           <div className='automatic-title'>
             <span className='content'>AUTOMATIC WAY</span>
             <span className='info'>(recommended)</span>
           </div>
-          <div className='eth-link'>
+          <div className={`eth-link ${hasApiUrl ? '' : 'disabled'}`}>
             <IconLink/>
-            <a className='text' href={fullLink} target="_blank">
-              {NETWORKS_BY_ID[activeNetwork.network]?.name} side of the bridge
-            </a>
+            {hasApiUrl ? (
+              <a className='text' href={fullLink} target="_blank" rel="noreferrer">
+                {networkName} side of the bridge
+              </a>
+            ) : (
+              <span className='text'>Bridge URL is not configured.</span>
+            )}
           </div>
-          <div className='link-info'>(your Beam bridge address will be pasted automatically)</div>
+          <div className='link-info'>
+            {hasApiUrl
+              ? '(your Beam bridge address will be pasted automatically)'
+              : 'Set API_URL to enable the bridge link.'}
+          </div>
 
           <OrSeparator/>
 
@@ -294,34 +346,30 @@ const Receive = () => {
           { isExpanded && (
             <ExpandedContent>
               <ContainerLine>
-                - Copy and open <span className={pTitle}>{NETWORKS_BY_ID[activeNetwork.network]?.name} side of the brige </span> 
+                - Copy and open <span className={pTitle}>{networkName} side of the brige </span> 
                 manually in your web browser
               </ContainerLine>
-              <CopyArea onCopy={()=> `${process.env.API_URL}/send/`}>
-                {`${process.env.API_URL}/send/`}
-              </CopyArea>
+              {hasApiUrl ? (
+                <CopyArea onCopy={() => manualLink}>
+                  {manualLink}
+                </CopyArea>
+              ) : (
+                <ContainerLine className='sub-link'>
+                  Bridge URL is not configured. Set API_URL to enable the manual link.
+                </ContainerLine>
+              )}
               <ContainerLine className='sub-link'>
-                - Select <span className={pTitle}>{NETWORKS_BY_ID[activeNetwork.network]?.name} to BEAM </span>
+                - Select <span className={pTitle}>{networkName} to BEAM </span>
               </ContainerLine>
               <ContainerLine>
                 - Copy and paste this address to the Beam bridge address field
               </ContainerLine>
-              <CopyArea onCopy={()=> (fullAddress)}>
+              <CopyArea onCopy={() => fullAddress}>
                 {fullAddress}
               </CopyArea>
             </ExpandedContent>
           )}
         </Container>
-
-        <Button
-          variant="ghost" 
-          onClick={cancelClicked} 
-          className={CancelButtonClass} 
-          pallete="purple" 
-          icon={IconCancel}
-        >
-          close
-        </Button>
       </ReceiveStyled>
     </Window>
   );
