@@ -95,11 +95,15 @@ css`
       margin: 0;
       padding: 0;
       height: 100%;
-      min-width: 860px;
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
     }
 
     #root {
-      display: inline;
+      display: block;
+      min-height: 100%;
     }
 
     html * {

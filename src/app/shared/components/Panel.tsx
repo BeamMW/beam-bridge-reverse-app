@@ -4,7 +4,11 @@ const Panel = styled.div`
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background-color: rgba(0, 0, 0, 0.18);
-  padding: 20px;
+  padding: 16px;
+
+  @media (min-width: 640px) {
+    padding: 20px;
+  }
 `;
 
 export default Panel;

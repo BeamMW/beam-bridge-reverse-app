@@ -51,20 +51,30 @@ const BridgeArrowClass = css`
   display: block;
 `;
 
+const ActionButtonClass = css`
+  @media (max-width: 640px) {
+    width: min(360px, 100%);
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+  }
+`;
+
 const StyledControls = styled.div`
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 20px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: center;
+  }
 `;
 
 const ControlItem = styled.div`
-  margin-right: 32px;
-  margin-bottom: 16px;
-
-  &:last-child {
-    margin-right: 0;
-  }
+  display: contents;
 `;
 
 const EmptyTableContent = styled.div`
@@ -203,18 +213,9 @@ const MainPage: React.FC = () => {
               pallete="purple"
               disabled={isDisabled()}
               onClick={handleSendClick}
+              className={ActionButtonClass}
             >
-              <BridgeLabel>
-                <BridgePart>
-                  <span>BEAM</span>
-                  <BeamMark className={BridgeIconClass} />
-                </BridgePart>
-                <BridgeArrow className={BridgeArrowClass} />
-                <BridgePart>
-                  <span>WBEAM</span>
-                  <NetworkIcon chainId={activeNetwork.network} className={BridgeIconClass} />
-                </BridgePart>
-              </BridgeLabel>
+              <span>Send</span>
             </Button>
           </ControlItem>
 
@@ -223,18 +224,9 @@ const MainPage: React.FC = () => {
               icon={IconReceive}
               pallete="blue"
               onClick={handleReceiveClick}
+              className={ActionButtonClass}
             >
-              <BridgeLabel>
-                <BridgePart>
-                  <span>WBEAM</span>
-                  <NetworkIcon chainId={activeNetwork.network} className={BridgeIconClass} />
-                </BridgePart>
-                <BridgeArrow className={BridgeArrowClass} />
-                <BridgePart>
-                  <span>BEAM</span>
-                  <BeamMark className={BridgeIconClass} />
-                </BridgePart>
-              </BridgeLabel>
+              <span>Receive</span>
             </Button>
           </ControlItem>
         </StyledControls>

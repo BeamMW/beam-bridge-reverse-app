@@ -101,6 +101,11 @@ const ReceiveStyled = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
+
+  @media (max-width: 640px) {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 `;
 
 const HeaderRow = styled.div`
@@ -130,16 +135,31 @@ const PageSubtitle = styled.p`
 `;
 
 const BackButton = styled.button`
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  padding: 0;
+  padding: 10px 14px;
+  line-height: 1;
+
+  &::before {
+    content: '←';
+    opacity: 0.9;
+  }
 
   &:hover {
-    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0.5px);
   }
 `;
 
